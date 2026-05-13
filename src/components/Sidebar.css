@@ -1,0 +1,93 @@
+.sidebar {
+  position: fixed;
+  top: 0; left: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.sidebar-logo {
+  width: 36px; height: 36px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px;
+  flex-shrink: 0;
+}
+.sidebar-title { font-weight: 700; font-size: 15px; color: var(--ink); line-height: 1.2; }
+.sidebar-sub   { font-size: 11px; color: var(--ink-3); }
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  color: var(--ink-2);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.12s, color 0.12s;
+}
+.sidebar-link:hover { background: var(--bg); color: var(--ink); }
+.sidebar-link--active { background: var(--accent-soft); color: var(--accent-dark); font-weight: 600; }
+.sidebar-link-icon { font-size: 18px; display: flex; align-items: center; }
+
+.sidebar-footer {
+  border-top: 1px solid var(--line);
+  padding: 14px 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.sidebar-user-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  font-weight: 700; font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.sidebar-user-name  { font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1.2; }
+.sidebar-user-email { font-size: 11px; color: var(--ink-3); }
+.sidebar-logout {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 13px;
+  transition: background 0.12s, color 0.12s;
+}
+.sidebar-logout:hover { background: var(--red-soft); color: var(--red); }

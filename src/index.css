@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #F5F0E8;
+  --surface: #FFFFFF;
+  --ink: #1A1A1A;
+  --ink-2: #5C564E;
+  --ink-3: #8A8578;
+  --line: #E8E3D8;
+  --accent: #C4895A;
+  --accent-dark: #A06D40;
+  --accent-soft: #F5E6D6;
+  --red: #E53935;
+  --red-soft: #FEECEC;
+  --green: #2E7D32;
+  --green-soft: #EAF4EA;
+  --yellow: #F9A825;
+  --yellow-soft: #FFF8E1;
+  --sidebar-w: 220px;
+  --font: 'Sarabun', 'IBM Plex Sans Thai', system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font-family: var(--font); cursor: pointer; }
+input, select, textarea { font-family: var(--font); }
+
+#root { display: flex; min-height: 100vh; }

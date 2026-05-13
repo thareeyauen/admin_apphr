@@ -1,0 +1,19 @@
+.layout { display: flex; min-height: 100vh; width: 100%; }
+
+.layout-main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.layout-topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 16px 28px;
+  position: sticky; top: 0; z-index: 50;
+}
+.layout-title { font-size: 20px; font-weight: 700; color: var(--ink); }
+
+.layout-content { padding: 24px 28px; flex: 1; }
