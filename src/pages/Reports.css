@@ -1,0 +1,142 @@
+.rep-desc { font-size: 13px; color: var(--ink-3); margin-bottom: 16px; }
+
+/* ─── Tabs ──────────────────────────────────────────────────────── */
+.rep-tabs {
+  display: flex; gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 14px;
+  width: fit-content;
+}
+.rep-tab {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; color: var(--ink-2);
+  border: none; border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px; font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.rep-tab:hover { background: var(--bg); color: var(--ink); }
+.rep-tab--active {
+  background: var(--accent); color: white;
+}
+.rep-tab--active:hover { background: var(--accent-dark); color: white; }
+.rep-tab-count {
+  background: rgba(0, 0, 0, 0.08);
+  font-size: 11px; font-weight: 700;
+  padding: 1px 8px; border-radius: 999px;
+  min-width: 22px; text-align: center;
+}
+.rep-tab--active .rep-tab-count {
+  background: rgba(255, 255, 255, 0.2); color: white;
+}
+
+/* ─── Filter bar ────────────────────────────────────────────────── */
+.rep-filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr)) auto;
+  gap: 10px 14px;
+  align-items: end;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.rep-filter { display: flex; flex-direction: column; gap: 4px; }
+.rep-filter label {
+  font-size: 11px; font-weight: 600;
+  color: var(--ink-3); text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.rep-filter input,
+.rep-filter select {
+  height: 36px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--surface); color: var(--ink);
+  font-family: var(--font); font-size: 13px;
+}
+.rep-filter input:focus,
+.rep-filter select:focus {
+  outline: 2px solid var(--accent); outline-offset: -1px; border-color: var(--accent);
+}
+.rep-filter--search { grid-column: span 2; }
+.rep-search-wrap { position: relative; }
+.rep-search-wrap svg {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--ink-3); font-size: 18px;
+}
+.rep-search-wrap input { padding-left: 34px; width: 100%; }
+
+.rep-export {
+  height: 36px;
+  background: var(--green); color: white;
+  border: none; border-radius: 8px;
+  padding: 0 16px;
+  font-size: 13px; font-weight: 700;
+  font-family: var(--font);
+  display: inline-flex; align-items: center; gap: 6px;
+  cursor: pointer; transition: filter 0.12s;
+}
+.rep-export:hover { filter: brightness(0.92); }
+
+/* ─── Table card ────────────────────────────────────────────────── */
+.rep-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.rep-table-wrap { overflow-x: auto; }
+.rep-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 900px; }
+.rep-table th {
+  text-align: left; padding: 10px 14px;
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  color: var(--ink-3); background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.rep-table td {
+  padding: 12px 14px; border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+  color: var(--ink);
+}
+.rep-table tr:last-child td { border-bottom: none; }
+.rep-table tbody tr:hover td { background: #faf8f4; }
+
+.rep-emp-name { font-weight: 600; font-size: 13px; color: var(--ink); }
+.rep-emp-id { font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.rep-sub { color: var(--ink-2); font-size: 12px; }
+.rep-mono { font-variant-numeric: tabular-nums; color: var(--ink-2); font-size: 12px; }
+.rep-detail {
+  max-width: 320px;
+  color: var(--ink-2); font-size: 12px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rep-days { color: var(--ink-3); font-size: 11px; margin-left: 2px; }
+
+.rep-empty { text-align: center; padding: 28px; color: var(--ink-3); font-size: 13px; }
+
+/* ─── Status pills (check-in kind) ──────────────────────────────── */
+.rep-pill {
+  display: inline-block;
+  padding: 3px 10px; border-radius: 999px;
+  font-size: 11px; font-weight: 600;
+  white-space: nowrap;
+}
+.rep-pill--office  { background: #E9F6EC; color: #2F7D4D; }
+.rep-pill--wfh     { background: #E6F4FF; color: #1F6FA8; }
+.rep-pill--offsite { background: #FFF0DF; color: #C4895A; }
+
+/* ─── Responsive ────────────────────────────────────────────────── */
+@media (max-width: 1000px) {
+  .rep-filters { grid-template-columns: repeat(2, 1fr); }
+  .rep-filter--search { grid-column: span 2; }
+  .rep-export { grid-column: span 2; width: 100%; }
+}

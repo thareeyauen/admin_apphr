@@ -43,10 +43,13 @@ export default function LeaveEntitlement() {
   useEffect(() => {
     Promise.all([getUsers(), getLeaveTypes(), getEntitlements()])
       .then(([u, types, m]) => {
-        setUsers(u || [])
+        // Board Level members don't use the leave system — exclude them here so
+        // they never appear in the list and can't be selected.
+        const manageable = (u || []).filter((x) => x.employeeLevel !== 'Board Level')
+        setUsers(manageable)
         setLeaveTypes(types || [])
         setEntitlementsMap(m || {})
-        if ((u || []).length > 0) setSelectedUserId(u[0].id)
+        if (manageable.length > 0) setSelectedUserId(manageable[0].id)
       })
       .catch(() => { setUsers([]); setLeaveTypes([]); setEntitlementsMap({}) })
   }, [])
