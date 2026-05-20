@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { MdCheck, MdClose, MdFilterList } from 'react-icons/md'
 import Layout from '../components/Layout'
 import { getRequests, approveRequest, rejectRequest } from '../store/store'
@@ -17,9 +17,13 @@ const TYPE_LABEL = {
 const STATUS_LABEL = { pending: 'รอดำเนินการ', approved: 'อนุมัติแล้ว', rejected: 'ปฏิเสธแล้ว' }
 
 export default function Requests() {
-  const [requests, setRequests] = useState(getRequests)
+  const [requests, setRequests] = useState([])
   const [tab, setTab] = useState('all')
   const [confirm, setConfirm] = useState(null) // { id, action: 'approve'|'reject' }
+
+  useEffect(() => {
+    getRequests().then(setRequests).catch(() => setRequests([]))
+  }, [])
 
   const pendingCount = useMemo(() => requests.filter((r) => r.status === 'pending').length, [requests])
 
@@ -28,11 +32,11 @@ export default function Requests() {
     [requests, tab]
   )
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!confirm) return
-    const next = confirm.action === 'approve'
+    const next = await (confirm.action === 'approve'
       ? approveRequest(confirm.id)
-      : rejectRequest(confirm.id)
+      : rejectRequest(confirm.id))
     setRequests(next)
     setConfirm(null)
   }

@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm run dev 2>&1)",
+      "Bash(ls c:/admin_apphr && echo \"---\" && ls c:/apphr)",
+      "Read(//c/apphr/**)",
+      "Read(//c//**)",
+      "Bash(mkdir -p c:/apphr_backend/src/routes c:/apphr_backend/data)",
+      "Bash(npm install *)",
+      "Bash(node src/seed.js)",
+      "Bash(node src/server.js)",
+      "Bash(curl -s http://localhost:4000/health)",
+      "Bash(curl -s -X POST http://localhost:4000/api/auth/login -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"admin@apphr.test\\\\\",\\\\\"password\\\\\":\\\\\"Admin@123\\\\\"}\")",
+      "Bash(node -e \"let s='';process.stdin.on\\('data',d=>s+=d\\).on\\('end',\\(\\)=>{const a=JSON.parse\\(s\\);console.log\\('count=',a.length\\);console.log\\('first=',a[0].employeeId,a[0].name\\);}\\)\")",
+      "Bash(npm run *)",
+      "Bash(node -e \"let s='';process.stdin.on\\('data',d=>s+=d\\).on\\('end',\\(\\)=>{const r=JSON.parse\\(s\\);console.log\\('after approve:',r.id,'->',r.status\\);}\\)\")",
+      "Bash(curl -s -X POST http://localhost:4000/api/auth/login -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"h0029@apphr.test\\\\\",\\\\\"password\\\\\":\\\\\"H0029@123\\\\\"}\")",
+      "Bash(node -e \"let s='';process.stdin.on\\('data',d=>s+=d\\).on\\('end',\\(\\)=>{const a=JSON.parse\\(s\\);console.log\\('employee sees status =',a[0]?.status\\);}\\)\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" -X POST http://localhost:4000/api/auth/admin/login -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"admin@apphr.test\\\\\",\\\\\"password\\\\\":\\\\\"Admin@123\\\\\"}\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" -X POST http://localhost:4000/api/auth/admin/login -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"h0029@apphr.test\\\\\",\\\\\"password\\\\\":\\\\\"H0029@123\\\\\"}\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" -X POST http://localhost:4000/api/auth/login -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"admin@apphr.test\\\\\",\\\\\"password\\\\\":\\\\\"Admin@123\\\\\"}\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" -X POST http://localhost:4000/api/auth/login -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"h0029@apphr.test\\\\\",\\\\\"password\\\\\":\\\\\"H0029@123\\\\\"}\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" -X POST http://localhost:4000/api/auth/admin/login -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"admin@apphr.test\\\\\",\\\\\"password\\\\\":\\\\\"wrong\\\\\"}\")",
+      "Bash(curl -s -o /dev/null -w \"backend at :4000 -> HTTP %{http_code}\\\\n\" http://localhost:4000/health)",
+      "Bash(curl -s -o /dev/null -w \"backend -> HTTP %{http_code}\\\\n\" http://localhost:4000/health)",
+      "Bash(node -e ' *)",
+      "Bash(curl -s -X POST http://localhost:4000/api/auth/admin/login -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"admin@apphr.test\\\\\",\\\\\"password\\\\\":\\\\\"Admin@123\\\\\"}\")",
+      "Bash(node -e \"let s='';process.stdin.on\\('data',d=>s+=d\\).on\\('end',\\(\\)=>{const a=JSON.parse\\(s\\);console.log\\('checkins=',a.length\\);console.log\\('sample=',JSON.stringify\\(a[0]\\)\\);}\\)\")",
+      "Bash(curl -s -o /dev/null -w \"before restart -> HTTP %{http_code}\\\\n\" http://localhost:4000/api/entitlements/types -H \"Authorization: Bearer dummy\")",
+      "Bash(netstat -ano)",
+      "Bash(tasklist /FI \"PID eq 6672\" /FO LIST)",
+      "PowerShell(Get-Process -Id 6672 -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -eq 6672 } | Select-Object ProcessId, Name, CommandLine | Format-List)",
+      "PowerShell(Stop-Process -Id 6672 -Force -ErrorAction SilentlyContinue)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:4000/health)",
+      "Bash(curl -s -o /dev/null -w \"health=%{http_code}\\\\n\" http://localhost:4000/health)"
+    ]
+  }
+}

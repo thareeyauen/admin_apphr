@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   MdAdd, MdDelete, MdSearch, MdClose, MdSave,
@@ -32,8 +32,12 @@ function getInitials(name = '') {
 
 export default function Users() {
   const navigate = useNavigate()
-  const [users, setUsers] = useState(getUsers)
+  const [users, setUsers] = useState([])
   const [query, setQuery] = useState('')
+
+  useEffect(() => {
+    getUsers().then(setUsers).catch(() => setUsers([]))
+  }, [])
   const [modal, setModal] = useState(null)
   const [toDelete, setToDelete] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
@@ -47,7 +51,11 @@ export default function Users() {
 
   const filtered = users.filter((u) => {
     const q = query.toLowerCase()
-    return !q || u.nameTh.includes(q) || u.employeeId.toLowerCase().includes(q) || u.department.toLowerCase().includes(q)
+    if (!q) return true
+    const nameTh = (u.nameTh || '').toLowerCase()
+    const empId = (u.employeeId || '').toLowerCase()
+    const dept = (u.department || '').toLowerCase()
+    return nameTh.includes(q) || empId.includes(q) || dept.includes(q)
   })
 
   const openAdd = () => {
@@ -62,12 +70,17 @@ export default function Users() {
     setTimeout(() => setCopied(false), 2000)
   }
   const closeModal = () => setModal(null)
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.nameTh.trim() || !form.employeeId.trim()) return
-    setUsers(addUser({ ...form, initial: getInitials(form.nameEn || form.nameTh) }))
+    const next = await addUser({ ...form, initial: getInitials(form.nameEn || form.nameTh) })
+    setUsers(next)
     closeModal()
   }
-  const handleDeleteUser = () => { setUsers(deleteUser(toDelete)); setToDelete(null) }
+  const handleDeleteUser = async () => {
+    const next = await deleteUser(toDelete)
+    setUsers(next)
+    setToDelete(null)
+  }
   const field = (key, label, type = 'text', options) => (
     <label className="uf-field">
       <span>{label}</span>
@@ -91,8 +104,9 @@ export default function Users() {
     setCopiedReset(true)
     setTimeout(() => setCopiedReset(false), 2000)
   }
-  const confirmReset = () => {
-    setUsers(updateUser(resetPw.id, { password: resetPw.password }))
+  const confirmReset = async () => {
+    const next = await updateUser(resetPw.id, { password: resetPw.password })
+    setUsers(next)
     setResetPw(null)
   }
 

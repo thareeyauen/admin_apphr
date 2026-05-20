@@ -11,10 +11,10 @@ export default function Login() {
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    const session = login(email.trim(), password)
+    const session = await login(email.trim(), password)
     if (session) {
       navigate('/dashboard')
     } else {

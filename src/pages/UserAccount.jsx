@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   MdEdit, MdDelete, MdSave, MdArrowBack,
@@ -343,9 +343,25 @@ export default function UserAccount() {
   const { employeeId } = useParams()
   const navigate = useNavigate()
 
-  const user = getUsers().find((u) => u.employeeId === employeeId)
-  const [profile, setProfile] = useState(() => user ? getAccountProfile(user.id) : null)
+  const [user, setUser] = useState(null)
+  const [profile, setProfile] = useState(null)
+  const [loaded, setLoaded] = useState(false)
   const [subTab, setSubTab] = useState('general')
+
+  useEffect(() => {
+    let cancelled = false
+    getUsers().then(async (list) => {
+      const found = list.find((u) => u.employeeId === employeeId)
+      if (cancelled) return
+      setUser(found || null)
+      if (found) {
+        const prof = await getAccountProfile(found.id)
+        if (!cancelled) setProfile(prof)
+      }
+      if (!cancelled) setLoaded(true)
+    }).catch(() => { if (!cancelled) setLoaded(true) })
+    return () => { cancelled = true }
+  }, [employeeId])
   const [editingTab, setEditingTab] = useState(null)
   const [generalDraft, setGeneralDraft] = useState(null)
   const [jobDraft, setJobDraft] = useState(null)
@@ -368,11 +384,11 @@ export default function UserAccount() {
     setEditingTab(subTab)
   }
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     let updated
-    if (subTab === 'general')  updated = updateAccountProfile(user.id, { user: generalDraft })
-    if (subTab === 'job')      updated = updateAccountProfile(user.id, { job: jobDraft })
-    if (subTab === 'benefits') updated = updateAccountProfile(user.id, { job: { ...profile.job, benefits: benefitsDraft } })
+    if (subTab === 'general')  updated = await updateAccountProfile(user.id, { user: generalDraft })
+    if (subTab === 'job')      updated = await updateAccountProfile(user.id, { job: jobDraft })
+    if (subTab === 'benefits') updated = await updateAccountProfile(user.id, { job: { ...profile.job, benefits: benefitsDraft } })
     if (updated) setProfile(updated)
     resetEdit()
   }
@@ -385,17 +401,25 @@ export default function UserAccount() {
     e.target.value = ''
   }
 
-  const confirmUpload = () => {
+  const confirmUpload = async () => {
     if (!uploadFile || !uploadKind.trim()) return
     const newDoc = { kind: uploadKind, file: uploadFile.name, size: formatFileSize(uploadFile.size), date: thaiDate(), status: 'uploaded' }
-    const updated = updateAccountProfile(user.id, { documents: [...(profile.documents || []), newDoc] })
+    const updated = await updateAccountProfile(user.id, { documents: [...(profile.documents || []), newDoc] })
     setProfile(updated)
     setUploadFile(null)
   }
 
-  const handleDeleteDoc = (i) => {
-    const updated = updateAccountProfile(user.id, { documents: (profile.documents || []).filter((_, idx) => idx !== i) })
+  const handleDeleteDoc = async (i) => {
+    const updated = await updateAccountProfile(user.id, { documents: (profile.documents || []).filter((_, idx) => idx !== i) })
     setProfile(updated)
+  }
+
+  if (!loaded) {
+    return (
+      <Layout title="ข้อมูล Account">
+        <div className="acct-empty"><p>กำลังโหลด…</p></div>
+      </Layout>
+    )
   }
 
   if (!user) {
