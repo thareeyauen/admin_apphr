@@ -1,0 +1,87 @@
+/* ── Alert banner (save success / error) ─────────────────── */
+.dm-alert {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; border-radius: 10px;
+  font-size: 13px; font-weight: 600; margin-bottom: 14px;
+}
+.dm-alert--success {
+  background: var(--green-soft); color: var(--green);
+  border: 1px solid var(--green);
+}
+.dm-alert--error {
+  background: var(--red-soft); color: var(--red);
+  border: 1px solid var(--red);
+}
+
+/* ── Section header (title + "Add benefit" button) ───────── */
+.dm-section-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px; margin-bottom: 16px;
+}
+
+/* ── Form fields ─────────────────────────────────────────── */
+.dm-field {
+  display: flex; flex-direction: column; gap: 5px;
+  min-width: 0;
+}
+.dm-field span {
+  font-size: 12px; font-weight: 600; color: var(--ink-2);
+}
+.dm-field input,
+.dm-field select,
+.dm-field textarea {
+  width: 100%; box-sizing: border-box;
+  padding: 8px 10px; border: 1.5px solid var(--line);
+  border-radius: 7px; font-size: 13px; color: var(--ink);
+  background: var(--surface); outline: none; font-family: var(--font);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.dm-field textarea { resize: vertical; line-height: 1.5; }
+.dm-field input:focus,
+.dm-field select:focus,
+.dm-field textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* ── Benefit list (cards) ────────────────────────────────── */
+.dm-benefit-list { display: flex; flex-direction: column; gap: 12px; }
+.dm-benefit {
+  display: grid; grid-template-columns: 42px 1fr 34px;
+  gap: 12px; align-items: start;
+  padding: 14px; border: 1px solid var(--line);
+  border-radius: 10px; background: var(--surface);
+}
+.dm-benefit--no-icon { grid-template-columns: 1fr 34px; }
+.dm-benefit.is-inactive { opacity: 0.65; background: var(--bg); }
+.dm-benefit-icon {
+  width: 42px; height: 42px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-soft); color: var(--accent);
+  font-size: 22px;
+}
+.dm-benefit-form { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.dm-benefit-top {
+  display: grid; grid-template-columns: 1.4fr 1.4fr 130px;
+  gap: 12px;
+}
+.dm-delete {
+  width: 34px; height: 34px; border: none; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; color: var(--ink-3); font-size: 18px;
+  cursor: pointer; transition: background 0.15s, color 0.15s;
+}
+.dm-delete:hover { background: var(--red-soft); color: var(--red); }
+
+@media (max-width: 900px) {
+  .dm-benefit-top { grid-template-columns: 1fr 1fr; }
+  .dm-section-head { flex-direction: column; }
+}
+
+@media (max-width: 640px) {
+  .dm-benefit-top { grid-template-columns: 1fr; }
+  .dm-benefit { grid-template-columns: 36px 1fr; }
+  .dm-benefit--no-icon { grid-template-columns: 1fr 34px; }
+  .dm-benefit-icon { width: 36px; height: 36px; font-size: 20px; }
+  .dm-delete { grid-column: 2; justify-self: end; }
+}

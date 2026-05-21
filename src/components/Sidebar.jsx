@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { MdDashboard, MdPeople, MdBeachAccess, MdAssignment, MdAssessment, MdLogout } from 'react-icons/md'
+import { MdDashboard, MdPeople, MdBeachAccess, MdAssignment, MdAssessment, MdLogout, MdAccountTree, MdStorage } from 'react-icons/md'
 import { logout, getSession } from '../store/store'
 import './Sidebar.css'
 
@@ -7,8 +7,10 @@ const NAV = [
   { to: '/dashboard', icon: <MdDashboard />, label: 'Dashboard' },
   { to: '/users',     icon: <MdPeople />,    label: 'พนักงาน' },
   { to: '/leave',     icon: <MdBeachAccess />, label: 'วันลา' },
+  { to: '/approvals', icon: <MdAccountTree />, label: 'สายอนุมัติ' },
   { to: '/requests',  icon: <MdAssignment />, label: 'คำขอ' },
   { to: '/reports',   icon: <MdAssessment />, label: 'รายงาน' },
+  { to: '/data-management', icon: <MdStorage />, label: 'จัดการข้อมูล' },
 ]
 
 export default function Sidebar() {

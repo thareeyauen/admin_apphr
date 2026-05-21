@@ -20,6 +20,7 @@
   transition: background 0.15s;
 }
 .btn-primary:hover { background: var(--accent-dark); }
+.btn-primary:disabled { background: var(--line); color: var(--ink-3); cursor: not-allowed; }
 
 .btn-ghost {
   padding: 9px 16px; background: transparent;
@@ -68,12 +69,9 @@
   border-radius: 20px; font-size: 11px; font-weight: 600;
   background: var(--bg); color: var(--ink-2);
 }
-.level-badge--board-level   { background: #EDE7F6; color: #4527A0; }
+.level-badge--board-level    { background: #EDE7F6; color: #4527A0; }
 .level-badge--director-level { background: #E3F2FD; color: #1565C0; }
-.level-badge--manager       { background: var(--green-soft); color: var(--green); }
-.level-badge--senior-staff  { background: var(--yellow-soft); color: #7B6000; }
-.level-badge--staff         { background: var(--bg); color: var(--ink-2); }
-.level-badge--project-level { background: #E8F5E9; color: #2E7D32; }
+.level-badge--project-level  { background: #E8F5E9; color: #2E7D32; }
 
 .row-actions { display: flex; gap: 6px; }
 .act-btn {
@@ -126,6 +124,13 @@
 .uf-field input:focus, .uf-field select:focus { border-color: var(--accent); }
 .uf-field--full { grid-column: 1 / -1; }
 
+.uf-field input.uf-input--error,
+.uf-field input.uf-input--error:focus { border-color: var(--red); background: var(--red-soft); }
+.uf-error {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 500; color: var(--red); margin-top: 2px;
+}
+
 /* Password generator row */
 .pw-gen-row {
   display: flex; gap: 6px; align-items: center;
@@ -156,6 +161,24 @@
 .pw-action-btn:hover { background: var(--accent-soft); color: var(--accent-dark); border-color: var(--accent); }
 .pw-action-btn--copied { background: var(--green-soft); color: var(--green); border-color: var(--green); }
 .pw-copied-label { font-size: 11px; font-weight: 600; }
+
+/* Password "set" trigger button (opens password modal) */
+.pw-set-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; background: var(--bg);
+  border: 1.5px dashed var(--line); border-radius: 9px;
+  font-size: 13px; color: var(--ink-2); cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  width: 100%; text-align: left;
+}
+.pw-set-btn:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-dark); }
+.pw-set-btn-label { flex: 1; font-weight: 500; }
+.pw-set-btn-status {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 600;
+  color: var(--green); background: var(--green-soft);
+  padding: 3px 8px; border-radius: 20px;
+}
 
 /* ── Page-level tabs ─────────────────────────────────────────────────────── */
 .page-tabs {
@@ -289,6 +312,9 @@
 /* ── History table edit mode ─────────────────────────────────────────────── */
 .a-row--history-edit { grid-template-columns: 80px 1fr 120px 36px; align-items: center; }
 
+/* ── Education table edit mode ───────────────────────────────────────────── */
+.a-row--edu-edit { grid-template-columns: 1.5fr 1.5fr 1fr 2fr 1fr 36px; align-items: center; }
+
 /* ── Add row button ──────────────────────────────────────────────────────── */
 .btn-add-row {
   align-self: flex-start; margin-top: 6px;
@@ -317,6 +343,26 @@
 .a-docs-empty {
   text-align: center; padding: 32px; color: var(--ink-3); font-size: 14px;
 }
+
+/* ── Approver chips in Job tab ───────────────────────────────────────────── */
+.a-approvers { display: flex; flex-direction: column; gap: 12px; }
+.a-approvers-empty { font-size: 13px; color: var(--ink-3); font-style: italic; }
+.a-approvers-chips { display: flex; gap: 10px; flex-wrap: wrap; }
+.a-approver-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px 6px 6px;
+  background: var(--accent-soft); border-radius: 999px;
+  font-size: 13px;
+}
+.a-approver-avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent); color: white;
+  font-weight: 700; font-size: 10px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.a-approver-name { display: block; font-weight: 600; line-height: 1.2; color: var(--ink); }
+.a-approver-role { display: block; font-size: 10px; color: var(--ink-3); line-height: 1.2; }
+.a-approver-chip--missing { background: var(--red-soft); color: var(--red); padding: 6px 14px; }
 
 /* ── Upload modal filename display ───────────────────────────────────────── */
 .upload-filename {

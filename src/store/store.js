@@ -64,6 +64,7 @@ function toLegacyUser(p) {
     employeeType: p.profile?.job?.type || '',
     startDate: p.profile?.job?.startDate || '',
     salary: p.profile?.job?.salary || '',
+    approverUserIds: Array.isArray(p.approverUserIds) ? p.approverUserIds : [],
   };
 }
 
@@ -87,6 +88,12 @@ export async function deleteUser(id) {
   return await getUsers();
 }
 
+// Approval chain — admin sets 1–2 approvers per user (by user.id).
+export async function updateApprovers(userId, approverUserIds) {
+  await api('PATCH', `/users/${userId}`, { approverUserIds });
+  return await getUsers();
+}
+
 // ─── Leave Entitlements ──────────────────────────────────────────────────────
 export async function getLeaveTypes() {
   return await api('GET', '/entitlements/types');
@@ -102,20 +109,28 @@ export async function updateEntitlement(userId, data) {
   return await api('GET', '/entitlements');
 }
 
+// Year-end snapshot: backend computes new _annualCarryOver = min(remaining, 20)
+// for every employee from the supplied year's used days. Returns a summary
+// (per-user before/after) so admin can review or export.
+export async function snapshotAnnualCarry(year) {
+  return await api('POST', '/entitlements/snapshot-carry', year ? { year } : {});
+}
+
 // ─── Account Profiles ────────────────────────────────────────────────────────
 export async function getAccountProfile(userId) {
   const p = await api('GET', `/users/${userId}`);
   if (!p) return null;
-  return { user: p.profile.user, job: p.profile.job, documents: p.profile.documents || [] };
+  return { user: p.profile.user, job: p.profile.job, company: p.profile.company || {}, documents: p.profile.documents || [] };
 }
 
 export async function updateAccountProfile(userId, patch) {
   const body = { profile: {} };
   if (patch.user) body.profile.user = patch.user;
   if (patch.job) body.profile.job = patch.job;
+  if (patch.company) body.profile.company = patch.company;
   if (patch.documents !== undefined) body.profile.documents = patch.documents;
   const p = await api('PATCH', `/users/${userId}`, body);
-  return { user: p.profile.user, job: p.profile.job, documents: p.profile.documents || [] };
+  return { user: p.profile.user, job: p.profile.job, company: p.profile.company || {}, documents: p.profile.documents || [] };
 }
 
 // ─── Check-ins ───────────────────────────────────────────────────────────────
@@ -138,4 +153,15 @@ export async function approveRequest(id) {
 export async function rejectRequest(id) {
   await api('PATCH', `/requests/${id}`, { status: 'rejected' });
   return await getRequests();
+}
+export async function updateRequest(id, data) {
+  await api('PATCH', `/requests/${id}`, data);
+  return await getRequests();
+}
+export async function deleteRequest(id) {
+  await api('DELETE', `/requests/${id}`);
+  return await getRequests();
+}
+export async function createRequest(data) {
+  return await api('POST', '/requests', data);
 }

@@ -1,18 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  MdAdd, MdDelete, MdSearch, MdClose, MdSave,
+  MdAdd, MdDelete, MdSearch, MdClose,
   MdAccountCircle, MdRefresh, MdVisibility, MdVisibilityOff, MdContentCopy,
   MdLockReset,
 } from 'react-icons/md'
 import Layout from '../components/Layout'
-import { getUsers, addUser, updateUser, deleteUser } from '../store/store'
+import { getUsers, updateUser, deleteUser } from '../store/store'
 import './Users.css'
-
-const USER_LEVELS = ['Project Level', 'Board Level', 'Director Level']
-const EMPTY_FORM = {
-  nameTh: '', nicknameTh: '', employeeId: '', email: '', employeeLevel: 'Project Level', password: '',
-}
 
 function generatePassword() {
   const upper   = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
@@ -38,11 +33,7 @@ export default function Users() {
   useEffect(() => {
     getUsers().then(setUsers).catch(() => setUsers([]))
   }, [])
-  const [modal, setModal] = useState(null)
   const [toDelete, setToDelete] = useState(null)
-  const [form, setForm] = useState(EMPTY_FORM)
-  const [showPw, setShowPw] = useState(false)
-  const [copied, setCopied] = useState(false)
 
   // Reset password modal state
   const [resetPw, setResetPw] = useState(null) // { id, name, password }
@@ -58,41 +49,11 @@ export default function Users() {
     return nameTh.includes(q) || empId.includes(q) || dept.includes(q)
   })
 
-  const openAdd = () => {
-    setForm({ ...EMPTY_FORM, password: generatePassword() })
-    setShowPw(false)
-    setCopied(false)
-    setModal({ mode: 'add' })
-  }
-  const copyPassword = () => {
-    navigator.clipboard.writeText(form.password)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-  const closeModal = () => setModal(null)
-  const handleSave = async () => {
-    if (!form.nameTh.trim() || !form.employeeId.trim()) return
-    const next = await addUser({ ...form, initial: getInitials(form.nameEn || form.nameTh) })
-    setUsers(next)
-    closeModal()
-  }
   const handleDeleteUser = async () => {
     const next = await deleteUser(toDelete)
     setUsers(next)
     setToDelete(null)
   }
-  const field = (key, label, type = 'text', options) => (
-    <label className="uf-field">
-      <span>{label}</span>
-      {options ? (
-        <select value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}>
-          {options.map((o) => <option key={o} value={o}>{o}</option>)}
-        </select>
-      ) : (
-        <input type={type} value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} />
-      )}
-    </label>
-  )
 
   const openResetPw = (u) => {
     setResetPw({ id: u.id, name: u.nameTh, password: generatePassword() })
@@ -117,7 +78,7 @@ export default function Users() {
           <MdSearch />
           <input placeholder="ค้นหาชื่อ, รหัส, แผนก..." value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
-        <button className="btn-primary" onClick={openAdd}><MdAdd /> เพิ่มพนักงาน</button>
+        <button className="btn-primary" onClick={() => navigate('/users/new')}><MdAdd /> เพิ่มพนักงาน</button>
       </div>
 
       <div className="users-card">
@@ -157,54 +118,6 @@ export default function Users() {
           </tbody>
         </table>
       </div>
-
-      {/* Add employee modal */}
-      {modal && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-head">
-              <h3>เพิ่มพนักงาน</h3>
-              <button className="modal-close" onClick={closeModal}><MdClose /></button>
-            </div>
-            <div className="modal-body">
-              <div className="uf-grid">
-                {field('employeeId', 'รหัสพนักงาน')}
-                {field('nameTh', 'ชื่อ-นามสกุล')}
-                {field('nicknameTh', 'ชื่อเล่น')}
-                {field('email', 'อีเมล', 'email')}
-                {field('employeeLevel', 'ระดับการเข้าถึง', 'text', USER_LEVELS)}
-                <label className="uf-field uf-field--full">
-                  <span>รหัสผ่านเริ่มต้น</span>
-                  <div className="pw-gen-row">
-                    <div className="pw-gen-input-wrap">
-                      <input
-                        type={showPw ? 'text' : 'password'}
-                        value={form.password}
-                        onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-                        className="pw-gen-input"
-                      />
-                      <button type="button" className="pw-eye" onClick={() => setShowPw((v) => !v)}>
-                        {showPw ? <MdVisibilityOff /> : <MdVisibility />}
-                      </button>
-                    </div>
-                    <button type="button" className="pw-action-btn" title="สุ่มใหม่" onClick={() => setForm((f) => ({ ...f, password: generatePassword() }))}>
-                      <MdRefresh />
-                    </button>
-                    <button type="button" className={'pw-action-btn' + (copied ? ' pw-action-btn--copied' : '')} title="คัดลอก" onClick={copyPassword}>
-                      <MdContentCopy />
-                      {copied && <span className="pw-copied-label">คัดลอกแล้ว</span>}
-                    </button>
-                  </div>
-                </label>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn-ghost" onClick={closeModal}>ยกเลิก</button>
-              <button className="btn-primary" onClick={handleSave}><MdSave /> บันทึก</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Reset password modal */}
       {resetPw && (

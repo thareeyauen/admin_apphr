@@ -148,6 +148,7 @@
 .le-summary-value span {
   font-size: 12px; font-weight: 500; color: var(--ink-3); margin-left: 4px;
 }
+.le-summary-value--ok { color: var(--green, #2e7d32); }
 
 /* ─── Groups ───────────────────────────────────────────────────── */
 .le-groups { display: flex; flex-direction: column; gap: 20px; }
@@ -201,6 +202,80 @@
   margin-top: 6px;
   line-height: 1.4;
 }
+.le-tile-usage {
+  font-size: 11px; color: var(--ink-3);
+  margin-top: 6px;
+  display: flex; gap: 4px; align-items: center; flex-wrap: wrap;
+}
+.le-tile-usage strong { font-weight: 700; color: var(--ink); }
+.le-tile-usage-remaining { color: var(--green, #2e7d32) !important; }
+.le-tile-remaining-input {
+  width: 56px; padding: 3px 6px;
+  border: 1.5px solid var(--green, #2e7d32); border-radius: 6px;
+  font-size: 12px; font-weight: 700; outline: none; text-align: center;
+  font-family: var(--font);
+  color: var(--green, #2e7d32);
+  background: var(--surface);
+}
+.le-tile-remaining-input:focus { box-shadow: 0 0 0 3px rgba(46,125,50,0.18); }
+
+/* ── Annual leave breakdown ───────────────────────────────────── */
+.le-tile-breakdown {
+  font-size: 11px; color: var(--ink-2);
+  margin-top: 6px;
+  display: flex; gap: 4px; align-items: center; flex-wrap: wrap;
+}
+.le-tile-breakdown strong { font-weight: 700; color: var(--ink); }
+.le-tile-breakdown-carry { color: var(--accent-dark) !important; }
+.le-tile-carry-input {
+  width: 52px; padding: 3px 6px;
+  border: 1.5px solid var(--accent); border-radius: 6px;
+  font-size: 12px; font-weight: 700; outline: none; text-align: center;
+  font-family: var(--font);
+  color: var(--accent-dark);
+  background: var(--surface);
+}
+.le-tile-carry-input:focus { box-shadow: 0 0 0 3px var(--accent-soft); }
+
+/* Summary card variant for carryover */
+.le-summary-item--carry .le-summary-label { color: var(--accent-dark); font-weight: 600; }
+.le-summary-value--carry { color: var(--accent-dark) !important; }
+
+/* ── Year-end snapshot action ─────────────────────────────────── */
+.le-page-actions {
+  display: flex; justify-content: flex-end; margin-bottom: 14px;
+}
+.le-snapshot-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+}
+
+.le-snapshot-list {
+  margin: 8px 0 0 18px; padding: 0;
+  font-size: 13px; color: var(--ink-2); line-height: 1.7;
+}
+.le-snapshot-list li { margin-bottom: 4px; }
+
+.le-snapshot-table {
+  border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+  max-height: 50vh; overflow-y: auto;
+}
+.le-snapshot-row {
+  display: grid;
+  grid-template-columns: 1.6fr 0.7fr 0.7fr 0.8fr 0.8fr 0.8fr 0.8fr;
+  padding: 8px 12px; gap: 8px; font-size: 12px;
+  border-bottom: 1px solid var(--line);
+  align-items: center;
+}
+.le-snapshot-row:last-child { border-bottom: none; }
+.le-snapshot-row--head {
+  background: var(--bg); font-weight: 700; font-size: 11px;
+  text-transform: uppercase; color: var(--ink-3);
+  position: sticky; top: 0; z-index: 1;
+}
+.le-snapshot-name { font-weight: 600; color: var(--ink); }
+.le-snapshot-emp { font-family: monospace; font-size: 10px; color: var(--ink-3); }
+.le-snapshot-new { font-weight: 700; color: var(--accent-dark); }
+.le-snapshot-excess { font-weight: 700; color: var(--red, #c62828); }
 
 .le-tile-input-row {
   display: flex; align-items: baseline; gap: 6px;

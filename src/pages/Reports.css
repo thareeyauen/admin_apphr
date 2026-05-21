@@ -108,6 +108,7 @@
 }
 .rep-table tr:last-child td { border-bottom: none; }
 .rep-table tbody tr:hover td { background: #faf8f4; }
+.rep-table td p { margin: 0; line-height: 1.4; }
 
 .rep-emp-name { font-weight: 600; font-size: 13px; color: var(--ink); }
 .rep-emp-id { font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
@@ -133,6 +134,20 @@
 .rep-pill--office  { background: #E9F6EC; color: #2F7D4D; }
 .rep-pill--wfh     { background: #E6F4FF; color: #1F6FA8; }
 .rep-pill--offsite { background: #FFF0DF; color: #C4895A; }
+.rep-pill--ok      { background: var(--green-soft, #E8F5E9); color: var(--green, #2E7D32); }
+.rep-pill--miss    { background: var(--red-soft, #FFEBEE); color: var(--red, #c62828); }
+.rep-pill--leave   { background: #E3F2FD; color: #1565C0; }
+
+/* Weekend toggle in the filter bar */
+.rep-weekend-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--ink-2);
+  padding: 8px 10px;
+  height: 36px; box-sizing: border-box;
+  cursor: pointer; user-select: none;
+  align-self: end;
+}
+.rep-weekend-toggle input { margin: 0; }
 
 /* ─── Responsive ────────────────────────────────────────────────── */
 @media (max-width: 1000px) {

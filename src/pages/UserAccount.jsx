@@ -2,8 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   MdEdit, MdDelete, MdSave, MdArrowBack,
-  MdPerson, MdWorkOutline, MdCardGiftcard, MdDescription,
-  MdHealthAndSafety, MdLocalHospital, MdCheckroom, MdEngineering, MdLaptop,
+  MdPerson, MdWorkOutline, MdDescription,
   MdCloudUpload, MdClose,
 } from 'react-icons/md'
 import Layout from '../components/Layout'
@@ -12,20 +11,19 @@ import './Users.css'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const JOB_LEVELS = ['Staff', 'Senior Staff', 'Manager', 'Director Level', 'Board Level']
+const JOB_LEVELS = ['Project Level', 'Board Level', 'Director Level']
+const DEPARTMENTS = [
+  'Board of Directors',
+  'Good Governance Research and Learning Department',
+  'Collaboration and Coordination Department',
+  'Accounting and Finance Department',
+  'Open Data for Transparency & Participation Department',
+]
 const ACCT_TABS = [
   { id: 'general',  label: 'ข้อมูลทั่วไป', icon: <MdPerson /> },
   { id: 'job',      label: 'งาน',           icon: <MdWorkOutline /> },
-  { id: 'benefits', label: 'สวัสดิการ',     icon: <MdCardGiftcard /> },
   { id: 'docs',     label: 'เอกสาร',        icon: <MdDescription /> },
 ]
-const BENEFIT_ICONS = {
-  socialSecurity: <MdHealthAndSafety />,
-  groupInsurance: <MdLocalHospital />,
-  suit:           <MdCheckroom />,
-  workWear:       <MdEngineering />,
-  equipment:      <MdLaptop />,
-}
 const DOC_KINDS = [
   'สำเนาบัตรประชาชน', 'สำเนาทะเบียนบ้าน', 'หนังสือรับรองการศึกษา',
   'สำเนาบัญชีธนาคาร', 'สัญญาจ้างงาน', 'เอกสารแจ้งปรับเงินเดือน', 'เอกสารแจ้งปรับตำแหน่ง',
@@ -90,6 +88,14 @@ function GeneralSection({ u, editing, draft, onDraftChange }) {
     edu[i] = { ...edu[i], [k]: v }
     onDraftChange({ ...draft, education: edu })
   }
+  const addEduRow = () => onDraftChange({
+    ...draft,
+    education: [...(draft.education || []), { degreeLevel: '', faculty: '', major: '', institute: '', studyYears: '' }],
+  })
+  const removeEduRow = (i) => onDraftChange({
+    ...draft,
+    education: (draft.education || []).filter((_, idx) => idx !== i),
+  })
   return (
     <>
       <AGroup title="ข้อมูลส่วนตัว" cols={3}>
@@ -160,11 +166,12 @@ function GeneralSection({ u, editing, draft, onDraftChange }) {
       </AGroup>
       <AGroup title="การศึกษา" cols={1}>
         <div className="a-table">
-          <div className="a-row a-row--head a-row--edu">
+          <div className={'a-row a-row--head a-row--edu' + (editing ? ' a-row--edu-edit' : '')}>
             <div>วุฒิการศึกษา</div><div>คณะ</div><div>สาขา</div><div>สถาบัน</div><div>ปี</div>
+            {editing && <div />}
           </div>
-          {(editing ? draft.education : u.education || []).map((e, i) => (
-            <div key={i} className="a-row a-row--edu a-row--zebra">
+          {(editing ? (draft.education || []) : (u.education || [])).map((e, i) => (
+            <div key={i} className={'a-row a-row--edu a-row--zebra' + (editing ? ' a-row--edu-edit' : '')}>
               {editing ? (
                 <>
                   <input className="akv-field" value={e.degreeLevel || ''} onChange={(ev) => setEdu(i, 'degreeLevel', ev.target.value)} />
@@ -172,6 +179,7 @@ function GeneralSection({ u, editing, draft, onDraftChange }) {
                   <input className="akv-field" value={e.major       || ''} onChange={(ev) => setEdu(i, 'major',       ev.target.value)} />
                   <input className="akv-field" value={e.institute   || ''} onChange={(ev) => setEdu(i, 'institute',   ev.target.value)} />
                   <input className="akv-field" value={e.studyYears  || ''} onChange={(ev) => setEdu(i, 'studyYears',  ev.target.value)} />
+                  <button className="act-btn act-btn--del" onClick={() => removeEduRow(i)}><MdDelete /></button>
                 </>
               ) : (
                 <>
@@ -185,6 +193,7 @@ function GeneralSection({ u, editing, draft, onDraftChange }) {
             </div>
           ))}
         </div>
+        {editing && <button className="btn-add-row" onClick={addEduRow}>+ เพิ่มการศึกษา</button>}
       </AGroup>
     </>
   )
@@ -192,8 +201,10 @@ function GeneralSection({ u, editing, draft, onDraftChange }) {
 
 // ─── Job section ──────────────────────────────────────────────────────────────
 
-function JobSection({ j, editing, draft, onDraftChange }) {
+function JobSection({ j, editing, draft, onDraftChange, approverUserIds = [], allUsers = [], navigate }) {
   const set = (k, v) => onDraftChange({ ...draft, [k]: v })
+  const usersById = Object.fromEntries((allUsers || []).map((u) => [u.id, u]))
+  const approverList = approverUserIds.map((id) => usersById[id] || null)
   const setBank = (k, v) => onDraftChange({ ...draft, bank: { ...draft.bank, [k]: v } })
   const setHistory = (i, k, v) => {
     const h = [...(draft.positionHistory || [])]
@@ -210,7 +221,7 @@ function JobSection({ j, editing, draft, onDraftChange }) {
         {editing ? (
           <>
             <AKVEdit k="ตำแหน่งงาน"      value={draft.roleTh}         onChange={(v) => set('roleTh', v)} />
-            <AKVEdit k="สังกัดฝ่าย/แผนก"  value={draft.department}     onChange={(v) => set('department', v)} />
+            <AKVEdit k="สังกัดฝ่าย/แผนก"  value={draft.department}     onChange={(v) => set('department', v)} options={draft.department && !DEPARTMENTS.includes(draft.department) ? [draft.department, ...DEPARTMENTS] : DEPARTMENTS} />
             <AKVEdit k="ระดับพนักงาน"     value={draft.employeeLevel}  onChange={(v) => set('employeeLevel', v)} options={JOB_LEVELS} />
             <AKVEdit k="ประเภทพนักงาน"    value={draft.type}           onChange={(v) => set('type', v)} />
             <AKVEdit k="วันเริ่มงาน"      value={draft.startDate}      onChange={(v) => set('startDate', v)} />
@@ -277,43 +288,33 @@ function JobSection({ j, editing, draft, onDraftChange }) {
         </div>
         {editing && <button className="btn-add-row" onClick={addRow}>+ เพิ่มรายการ</button>}
       </AGroup>
-    </>
-  )
-}
-
-// ─── Benefits section ─────────────────────────────────────────────────────────
-
-function BenefitsSection({ benefits, editing, draft, onDraftChange }) {
-  const setB = (key, field, value) => onDraftChange({ ...draft, [key]: { ...draft[key], [field]: value } })
-  const source = editing ? draft : (benefits || {})
-  return (
-    <div className="a-benefits">
-      {Object.entries(source).map(([key, b]) => (
-        <div key={key} className={'a-benefit' + (b.status === 'inactive' ? ' a-benefit--inactive' : '')}>
-          <div className="a-benefit-head">
-            <span className="a-benefit-icon">{BENEFIT_ICONS[key] || <MdCardGiftcard />}</span>
-            <div style={{ flex: 1 }}>
-              <div className="a-benefit-name">{b.titleTh}</div>
-              <div className="a-benefit-name-en">{b.titleEn}</div>
-            </div>
-            {editing ? (
-              <button className={'a-status-toggle' + (b.status === 'active' ? ' is-active' : '')} onClick={() => setB(key, 'status', b.status === 'active' ? 'inactive' : 'active')}>
-                {b.status === 'active' ? 'ใช้งาน' : 'ไม่ใช้งาน'}
-              </button>
-            ) : (
-              <span className={'a-status-badge' + (b.status === 'active' ? ' is-active' : '')}>
-                {b.status === 'active' ? 'ใช้งาน' : 'ไม่ใช้งาน'}
-              </span>
-            )}
-          </div>
-          {editing ? (
-            <textarea className="akv-field akv-field--ta" value={b.detail || ''} rows={2} onChange={(e) => setB(key, 'detail', e.target.value)} />
+      <AGroup title="ผู้อนุมัติ" cols={1}>
+        <div className="a-approvers">
+          {approverList.length === 0 ? (
+            <p className="a-approvers-empty">ยังไม่ได้กำหนดผู้อนุมัติ — คำขอจะถูกส่งให้แอดมิน</p>
           ) : (
-            <div className="a-benefit-detail">{b.detail}</div>
+            <div className="a-approvers-chips">
+              {approverList.map((u, i) => u ? (
+                <span key={u.id} className="a-approver-chip">
+                  <span className="a-approver-avatar">{u.initial || getInitials(u.nameEn || u.nameTh)}</span>
+                  <span>
+                    <span className="a-approver-name">{u.nameTh}</span>
+                    <span className="a-approver-role">{u.employeeLevel}</span>
+                  </span>
+                </span>
+              ) : (
+                <span key={i} className="a-approver-chip a-approver-chip--missing">ไม่พบผู้ใช้</span>
+              ))}
+            </div>
+          )}
+          {navigate && (
+            <button type="button" className="btn-add-row" onClick={() => navigate('/approvals')}>
+              จัดการสายอนุมัติ →
+            </button>
           )}
         </div>
-      ))}
-    </div>
+      </AGroup>
+    </>
   )
 }
 
@@ -344,6 +345,7 @@ export default function UserAccount() {
   const navigate = useNavigate()
 
   const [user, setUser] = useState(null)
+  const [allUsers, setAllUsers] = useState([])
   const [profile, setProfile] = useState(null)
   const [loaded, setLoaded] = useState(false)
   const [subTab, setSubTab] = useState('general')
@@ -354,6 +356,7 @@ export default function UserAccount() {
       const found = list.find((u) => u.employeeId === employeeId)
       if (cancelled) return
       setUser(found || null)
+      setAllUsers(list || [])
       if (found) {
         const prof = await getAccountProfile(found.id)
         if (!cancelled) setProfile(prof)
@@ -365,7 +368,6 @@ export default function UserAccount() {
   const [editingTab, setEditingTab] = useState(null)
   const [generalDraft, setGeneralDraft] = useState(null)
   const [jobDraft, setJobDraft] = useState(null)
-  const [benefitsDraft, setBenefitsDraft] = useState(null)
 
   const fileInputRef = useRef(null)
   const [uploadFile, setUploadFile] = useState(null)
@@ -373,14 +375,13 @@ export default function UserAccount() {
 
   const isEditing = editingTab === subTab
 
-  const resetEdit = () => { setEditingTab(null); setGeneralDraft(null); setJobDraft(null); setBenefitsDraft(null) }
+  const resetEdit = () => { setEditingTab(null); setGeneralDraft(null); setJobDraft(null) }
 
   const handleSubTab = (id) => { setSubTab(id); resetEdit() }
 
   const startEdit = () => {
     if (subTab === 'general')  setGeneralDraft(JSON.parse(JSON.stringify(profile.user)))
     if (subTab === 'job')      setJobDraft(JSON.parse(JSON.stringify(profile.job)))
-    if (subTab === 'benefits') setBenefitsDraft(JSON.parse(JSON.stringify(profile.job?.benefits || {})))
     setEditingTab(subTab)
   }
 
@@ -388,7 +389,6 @@ export default function UserAccount() {
     let updated
     if (subTab === 'general')  updated = await updateAccountProfile(user.id, { user: generalDraft })
     if (subTab === 'job')      updated = await updateAccountProfile(user.id, { job: jobDraft })
-    if (subTab === 'benefits') updated = await updateAccountProfile(user.id, { job: { ...profile.job, benefits: benefitsDraft } })
     if (updated) setProfile(updated)
     resetEdit()
   }
@@ -433,6 +433,8 @@ export default function UserAccount() {
     )
   }
 
+  const canEditCurrentTab = subTab === 'general' || subTab === 'job'
+
   return (
     <Layout title="ข้อมูล Account">
       {/* Header */}
@@ -445,7 +447,7 @@ export default function UserAccount() {
           <div className="acct-role">{user.role} · {user.department}</div>
         </div>
         <div className="acct-actions">
-          {subTab !== 'docs' && (
+          {canEditCurrentTab && (
             isEditing ? (
               <>
                 <button className="btn-ghost"  onClick={resetEdit}>ยกเลิก</button>
@@ -479,8 +481,7 @@ export default function UserAccount() {
       {profile && (
         <div className="acct-card">
           {subTab === 'general' && <GeneralSection u={profile.user} editing={isEditing} draft={generalDraft || profile.user} onDraftChange={setGeneralDraft} />}
-          {subTab === 'job'     && <JobSection j={profile.job} editing={isEditing} draft={jobDraft || profile.job} onDraftChange={setJobDraft} />}
-          {subTab === 'benefits' && <BenefitsSection benefits={profile.job?.benefits} editing={isEditing} draft={benefitsDraft || profile.job?.benefits || {}} onDraftChange={setBenefitsDraft} />}
+          {subTab === 'job'     && <JobSection j={profile.job} editing={isEditing} draft={jobDraft || profile.job} onDraftChange={setJobDraft} approverUserIds={user?.approverUserIds || []} allUsers={allUsers} navigate={navigate} />}
           {subTab === 'docs'    && <DocsSection documents={profile.documents} onDelete={handleDeleteDoc} />}
         </div>
       )}

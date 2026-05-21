@@ -1,0 +1,198 @@
+/* ─── Master-detail shell (mirrors LeaveEntitlement) ───────────── */
+.ap-shell {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+/* ─── LEFT: list ──────────────────────────────────────────────── */
+.ap-list-panel {
+  background: var(--surface);
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  overflow: hidden;
+  position: sticky; top: 16px;
+  max-height: calc(100vh - 60px);
+  display: flex; flex-direction: column;
+}
+
+.ap-list-search {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.ap-list-search > svg { color: var(--ink-3); font-size: 18px; flex-shrink: 0; }
+.ap-list-search input {
+  flex: 1; border: none; outline: none;
+  font-family: var(--font); font-size: 13px;
+  background: transparent; color: var(--ink);
+}
+
+.ap-list-meta {
+  padding: 8px 14px; font-size: 11px; color: var(--ink-3);
+  border-bottom: 1px solid var(--line);
+}
+.ap-list-meta strong { color: var(--ink); font-weight: 700; }
+
+.ap-list-body { flex: 1; overflow-y: auto; }
+.ap-list-body::-webkit-scrollbar { width: 6px; }
+.ap-list-body::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+.ap-list-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none; background: transparent;
+  border-left: 3px solid transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s, border-left-color 0.12s;
+  font-family: var(--font);
+}
+.ap-list-item:hover { background: var(--bg); }
+.ap-list-item.is-active {
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+}
+.ap-list-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent-dark);
+  font-weight: 700; font-size: 11px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.ap-list-item.is-active .ap-list-avatar {
+  background: var(--accent); color: white;
+}
+.ap-list-info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.ap-list-name {
+  font-size: 13px; font-weight: 600; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ap-list-role {
+  font-size: 11px; color: var(--ink-3);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ap-list-count {
+  background: var(--accent-soft); color: var(--accent-dark);
+  font-size: 11px; font-weight: 700;
+  padding: 2px 8px; border-radius: 999px; flex-shrink: 0;
+  min-width: 22px; text-align: center;
+}
+.ap-list-count.is-empty { background: var(--bg); color: var(--ink-3); }
+
+/* ─── RIGHT: detail ───────────────────────────────────────────── */
+.ap-detail-panel {
+  background: var(--surface);
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  padding: 22px 24px;
+}
+
+.ap-empty, .ap-empty-detail {
+  padding: 32px; color: var(--ink-3); text-align: center; font-size: 13px;
+}
+
+.ap-detail-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.ap-detail-user { display: flex; align-items: center; gap: 14px; }
+.ap-detail-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent-dark);
+  font-weight: 700; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.ap-detail-name { font-size: 16px; font-weight: 700; color: var(--ink); }
+.ap-detail-sub { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+
+.ap-detail-actions { display: flex; gap: 8px; align-items: center; }
+.ap-saved-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12px; font-weight: 600; color: var(--green, #2e7d32);
+  background: var(--green-soft, #E8F5E9); padding: 4px 10px; border-radius: 999px;
+}
+
+/* ─── Info & slots ────────────────────────────────────────────── */
+.ap-info-card {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 18px;
+}
+.ap-info-label { font-size: 11px; color: var(--ink-3); font-weight: 600; }
+.ap-info-value { font-size: 13px; color: var(--ink); margin-top: 2px; font-weight: 600; }
+
+.ap-slots {
+  display: flex; flex-direction: column; gap: 14px;
+}
+.ap-slot {
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.ap-slot-label {
+  font-size: 12px; font-weight: 700; color: var(--ink-2);
+}
+.ap-slot-optional { font-weight: 400; color: var(--ink-3); }
+
+.ap-slot-select {
+  padding: 8px 10px;
+  border: 1.5px solid var(--line);
+  border-radius: 7px;
+  font-size: 13px;
+  outline: none;
+  font-family: var(--font);
+  background: var(--surface);
+  transition: border-color 0.15s;
+}
+.ap-slot-select:focus { border-color: var(--accent); }
+
+.ap-slot-display { min-height: 36px; display: flex; align-items: center; }
+.ap-slot-empty { font-size: 13px; color: var(--ink-3); font-style: italic; }
+
+/* ─── Chip ────────────────────────────────────────────────────── */
+.ap-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 12px 5px 5px;
+  background: var(--accent-soft); color: var(--ink);
+  border-radius: 999px; font-size: 13px;
+}
+.ap-chip-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent); color: white;
+  font-weight: 700; font-size: 10px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.ap-chip-name { display: block; font-weight: 600; line-height: 1.2; }
+.ap-chip-role { display: block; font-size: 10px; color: var(--ink-3); line-height: 1.2; }
+.ap-chip--missing {
+  background: var(--red-soft, #FFEBEE); color: var(--red, #c62828);
+  padding: 5px 12px;
+}
+
+/* ─── Warning ─────────────────────────────────────────────────── */
+.ap-warning {
+  margin-top: 18px;
+  padding: 12px 14px;
+  background: var(--yellow-soft, #FFF8E1);
+  border: 1px solid #FFE082;
+  border-radius: 9px;
+  display: flex; gap: 10px; align-items: center;
+  font-size: 12px; color: #7B6000;
+}
+.ap-warning svg { font-size: 18px; flex-shrink: 0; }
+
+/* ─── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 880px) {
+  .ap-shell { grid-template-columns: 1fr; }
+  .ap-list-panel { position: static; max-height: 320px; }
+}
