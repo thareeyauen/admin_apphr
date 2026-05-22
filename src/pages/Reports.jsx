@@ -241,7 +241,8 @@ export default function Reports() {
         'แผนก': u.department || '',
         'วันที่': row.day,
         'สถานะ': statusLabel,
-        'เวลา': c?.time || '',
+        'เวลา Check In': c?.time || '',
+        'เวลา Check Out': c?.checkOutTime || '',
         'ประเภท': c ? checkinKindLabel(c) : '',
         'สถานที่ / ที่อยู่': c ? locText(c) : '',
         'หมายเหตุ': c?.note || row.leave?.detail || '',
@@ -376,12 +377,12 @@ export default function Reports() {
               <thead>
                 <tr>
                   <th>วันที่</th><th>พนักงาน</th><th>แผนก</th>
-                  <th>สถานะ</th><th>เวลา</th><th>ประเภท / สถานที่</th>
+                  <th>สถานะ</th><th>Check In</th><th>Check Out</th><th>ประเภท / สถานที่</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredCheckins.length === 0 ? (
-                  <tr><td colSpan={6} className="rep-empty">ไม่มีรายการในช่วงนี้</td></tr>
+                  <tr><td colSpan={7} className="rep-empty">ไม่มีรายการในช่วงนี้</td></tr>
                 ) : filteredCheckins.map((row, idx) => {
                   const u = row.user
                   const c = row.checkin
@@ -406,6 +407,7 @@ export default function Reports() {
                         )}
                       </td>
                       <td className="rep-mono">{c?.time || '—'}</td>
+                      <td className="rep-mono">{c?.checkOutTime || '—'}</td>
                       <td>
                         {c && (
                           <>

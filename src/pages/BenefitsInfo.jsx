@@ -5,7 +5,7 @@ import {
   MdHealthAndSafety, MdLocalHospital, MdCheckroom, MdEngineering, MdLaptop,
 } from 'react-icons/md'
 import Layout from '../components/Layout'
-import { getUsers, getAccountProfile, updateAccountProfile } from '../store/store'
+import { getSettings, updateSettings } from '../store/store'
 import './Users.css'         // .acct-header, .acct-card, .btn-*
 import './BenefitsInfo.css'
 
@@ -39,7 +39,6 @@ export default function BenefitsInfo() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [users, setUsers] = useState([])
   const [draft, setDraft] = useState(clone(DEFAULT_BENEFITS))
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -53,16 +52,8 @@ export default function BenefitsInfo() {
     let cancelled = false
     async function load() {
       try {
-        const list = await getUsers()
-        if (cancelled) return
-        setUsers(list || [])
-        const first = list?.[0]
-        if (first) {
-          const profile = await getAccountProfile(first.id)
-          if (!cancelled && profile?.job?.benefits) {
-            setDraft({ ...DEFAULT_BENEFITS, ...profile.job.benefits })
-          }
-        }
+        const s = await getSettings()
+        if (!cancelled && s?.benefits) setDraft({ ...DEFAULT_BENEFITS, ...s.benefits })
       } catch (err) {
         if (!cancelled) setError(err.message || 'โหลดข้อมูลไม่สำเร็จ')
       } finally {
@@ -95,10 +86,8 @@ export default function BenefitsInfo() {
     setError('')
     setMessage('')
     try {
-      await Promise.all(
-        users.map((user) => updateAccountProfile(user.id, { job: { benefits: draft } }))
-      )
-      setMessage(`บันทึกสวัสดิการให้พนักงาน ${users.length} คนเรียบร้อย`)
+      await updateSettings({ benefits: draft })
+      setMessage('บันทึกสวัสดิการเรียบร้อย')
     } catch (err) {
       setError(err.message || 'บันทึกข้อมูลไม่สำเร็จ')
     } finally {
@@ -122,7 +111,7 @@ export default function BenefitsInfo() {
           <button className="btn-ghost" onClick={() => navigate('/data-management')} disabled={saving}>
             ยกเลิก
           </button>
-          <button className="btn-primary" onClick={save} disabled={loading || saving || users.length === 0}>
+          <button className="btn-primary" onClick={save} disabled={loading || saving}>
             <MdSave /> {saving ? 'กำลังบันทึก…' : 'บันทึก'}
           </button>
         </div>

@@ -4,7 +4,7 @@
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000/api';
 const SESSION_KEY = 'admin_apphr_session';
 
-export const DEFAULT_ENTITLEMENTS = { annual: 5, sick: 30, personal: 6, maternity: 98 };
+export const DEFAULT_ENTITLEMENTS = { annual: 7, sick: 30, personal: 4, maternity: 120 };
 
 // ─── Session (sync, localStorage-only) ───────────────────────────────────────
 function loadSession() {
@@ -73,6 +73,32 @@ export async function getUsers() {
   return profiles.map(toLegacyUser);
 }
 
+export async function getAllUserIds() {
+  return await api('GET', '/users/all-ids');
+}
+
+// ─── Lookups ─────────────────────────────────────────────────────────────────
+export async function getEmploymentTypes() {
+  return await api('GET', '/lookups/employment-types');
+}
+
+// ─── Admin Accounts ──────────────────────────────────────────────────────────
+export async function getAdmins() {
+  return await api('GET', '/admins');
+}
+
+export async function addAdmin(data) {
+  return await api('POST', '/admins', data);
+}
+
+export async function resetAdminPassword(adminId, newPassword) {
+  return await api('PATCH', `/admins/${adminId}/password`, { newPassword });
+}
+
+export async function deleteAdminAccount(adminId) {
+  return await api('DELETE', `/admins/${adminId}`);
+}
+
 export async function addUser(user) {
   await api('POST', '/users', user);
   return await getUsers();
@@ -80,6 +106,11 @@ export async function addUser(user) {
 
 export async function updateUser(id, data) {
   await api('PATCH', `/users/${id}`, data);
+  return await getUsers();
+}
+
+export async function resetUserPassword(userId, newPassword) {
+  await api('PATCH', `/users/${userId}/password`, { newPassword });
   return await getUsers();
 }
 
@@ -131,6 +162,14 @@ export async function updateAccountProfile(userId, patch) {
   if (patch.documents !== undefined) body.profile.documents = patch.documents;
   const p = await api('PATCH', `/users/${userId}`, body);
   return { user: p.profile.user, job: p.profile.job, company: p.profile.company || {}, documents: p.profile.documents || [] };
+}
+
+// ─── Settings (company info + benefits) ─────────────────────────────────────
+export async function getSettings() {
+  return await api('GET', '/settings');
+}
+export async function updateSettings(patch) {
+  return await api('PATCH', '/settings', patch);
 }
 
 // ─── Check-ins ───────────────────────────────────────────────────────────────

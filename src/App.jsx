@@ -13,6 +13,7 @@ import Reports from './pages/Reports'
 import DataManagement from './pages/DataManagement'
 import CompanyInfo from './pages/CompanyInfo'
 import BenefitsInfo from './pages/BenefitsInfo'
+import AdminAccounts from './pages/AdminAccounts'
 
 function Protected({ children }) {
   return getSession() ? children : <Navigate to="/login" replace />
@@ -34,6 +35,7 @@ export default function App() {
       <Route path="/data-management" element={<Protected><DataManagement /></Protected>} />
       <Route path="/data-management/company" element={<Protected><CompanyInfo /></Protected>} />
       <Route path="/data-management/benefits" element={<Protected><BenefitsInfo /></Protected>} />
+      <Route path="/admin-accounts" element={<Protected><AdminAccounts /></Protected>} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   )

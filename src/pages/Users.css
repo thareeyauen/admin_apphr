@@ -126,9 +126,19 @@
 
 .uf-field input.uf-input--error,
 .uf-field input.uf-input--error:focus { border-color: var(--red); background: var(--red-soft); }
+.uf-field input.uf-input--readonly {
+  background: var(--surface-2, #f4f4f5); color: var(--ink-2);
+  cursor: default; border-color: var(--line); user-select: none;
+}
 .uf-error {
   display: inline-flex; align-items: center; gap: 4px;
   font-size: 11px; font-weight: 500; color: var(--red); margin-top: 2px;
+}
+.uf-required { color: var(--red); margin-left: 2px; }
+.uf-error-banner {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--red-soft, #fff0f0); border: 1.5px solid var(--red); border-radius: 10px;
+  color: var(--red); font-size: 13px; font-weight: 500; padding: 10px 14px; margin-bottom: 12px;
 }
 
 /* Password generator row */

@@ -1,0 +1,162 @@
+/* ── Toolbar ─────────────────────────────────────────────────────────────── */
+.admin-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; gap: 12px;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.btn-primary {
+  display: flex; align-items: center; gap: 6px;
+  padding: 9px 16px; background: var(--accent); color: #fff;
+  border: none; border-radius: 9px; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: background 0.15s;
+}
+.btn-primary:hover { background: var(--accent-dark); }
+.btn-primary:disabled { background: var(--line); color: var(--ink-3); cursor: not-allowed; }
+
+.btn-ghost {
+  display: flex; align-items: center; gap: 6px;
+  padding: 9px 16px; background: transparent;
+  border: 1.5px solid var(--line); border-radius: 9px;
+  font-size: 14px; color: var(--ink-2); cursor: pointer; transition: background 0.15s;
+}
+.btn-ghost:hover { background: var(--bg); }
+
+.btn-danger {
+  display: flex; align-items: center; gap: 6px;
+  padding: 9px 16px; background: var(--red); color: #fff;
+  border: none; border-radius: 9px; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: background 0.15s;
+}
+.btn-danger:hover { background: #c62828; }
+.btn-danger:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── Table card ──────────────────────────────────────────────────────────── */
+.admin-card {
+  background: var(--surface); border-radius: 14px;
+  border: 1px solid var(--line); overflow: hidden;
+}
+
+.admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.admin-table th {
+  text-align: left; padding: 10px 14px;
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  color: var(--ink-3); background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.admin-table td {
+  padding: 12px 14px; border-bottom: 1px solid var(--line);
+  color: var(--ink); vertical-align: middle;
+}
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-table tr:hover td { background: #faf8f4; }
+
+.table-empty { text-align: center; color: var(--ink-3); padding: 32px; }
+
+/* ── Name cell ───────────────────────────────────────────────────────────── */
+.admin-name-cell { display: flex; align-items: center; gap: 10px; }
+.admin-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent-dark);
+  font-size: 18px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.admin-name { font-weight: 600; font-size: 13px; color: var(--ink); }
+.self-badge {
+  font-size: 10px; background: var(--accent-soft); color: var(--accent-dark);
+  border-radius: 4px; padding: 1px 6px; font-weight: 600;
+}
+
+.td-sub { font-size: 12px; color: var(--ink-3); }
+
+/* ── Row actions ─────────────────────────────────────────────────────────── */
+.row-actions { display: flex; gap: 6px; }
+.act-btn {
+  width: 30px; height: 30px; border: none; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; background: transparent; color: var(--ink-3);
+  cursor: pointer; transition: background 0.12s, color 0.12s;
+}
+.act-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.act-btn--del:hover { background: var(--red-soft); color: var(--red); }
+
+/* ── Modal ───────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal {
+  background: var(--surface); border-radius: 16px;
+  width: min(640px, 100%); max-height: 90vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+}
+.modal--sm { width: min(420px, 100%); }
+
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 22px; border-bottom: 1px solid var(--line);
+}
+.modal-head h3 { font-size: 16px; font-weight: 700; margin: 0; }
+
+.modal-close {
+  background: none; border: none; color: var(--ink-3);
+  font-size: 20px; display: flex; align-items: center; cursor: pointer;
+}
+.modal-close:hover { color: var(--ink); }
+
+.modal-body { padding: 20px 22px; overflow-y: auto; flex: 1; }
+.modal-body p { font-size: 14px; color: var(--ink-2); margin: 0; }
+
+.modal-footer {
+  padding: 14px 22px; border-top: 1px solid var(--line);
+  display: flex; justify-content: flex-end; gap: 10px;
+}
+
+/* ── Form fields ─────────────────────────────────────────────────────────── */
+.uf-field { display: flex; flex-direction: column; gap: 5px; }
+.uf-field span { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.uf-field input {
+  padding: 8px 10px; border: 1.5px solid var(--line);
+  border-radius: 7px; font-size: 13px; outline: none;
+  transition: border-color 0.15s;
+}
+.uf-field input:focus { border-color: var(--accent); }
+.uf-field--full { width: 100%; }
+
+.uf-error-banner {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--red-soft, #fff0f0); border: 1.5px solid var(--red);
+  border-radius: 10px; color: var(--red); font-size: 13px; font-weight: 500;
+  padding: 10px 14px; margin-bottom: 12px;
+}
+
+/* ── Password row ────────────────────────────────────────────────────────── */
+.pw-gen-row { display: flex; gap: 6px; align-items: center; }
+.pw-gen-input-wrap { position: relative; flex: 1; }
+.pw-gen-input {
+  width: 100%; box-sizing: border-box;
+  padding: 8px 36px 8px 10px; border: 1.5px solid var(--line);
+  border-radius: 7px; font-size: 13px; font-family: monospace;
+  outline: none; transition: border-color 0.15s;
+}
+.pw-gen-input:focus { border-color: var(--accent); }
+
+.pw-eye {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: var(--ink-3); font-size: 17px;
+  display: flex; align-items: center; cursor: pointer; padding: 2px;
+}
+.pw-eye:hover { color: var(--ink); }
+
+.pw-action-btn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 7px 10px; background: var(--bg); border: 1.5px solid var(--line);
+  border-radius: 7px; font-size: 16px; color: var(--ink-2);
+  cursor: pointer; transition: background 0.15s, color 0.15s; flex-shrink: 0;
+  white-space: nowrap; position: relative;
+}
+.pw-action-btn:hover { background: var(--accent-soft); color: var(--accent-dark); border-color: var(--accent); }
+.pw-action-btn--copied { background: var(--green-soft); color: var(--green); border-color: var(--green); }
+.pw-copied-label { font-size: 11px; font-weight: 600; }

@@ -6,7 +6,7 @@ import {
   MdCloudUpload, MdClose,
 } from 'react-icons/md'
 import Layout from '../components/Layout'
-import { getUsers, getAccountProfile, updateAccountProfile } from '../store/store'
+import { getUsers, getAccountProfile, updateAccountProfile, getEmploymentTypes } from '../store/store'
 import './Users.css'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -105,8 +105,8 @@ function GeneralSection({ u, editing, draft, onDraftChange }) {
             <AKVEdit k="ชื่อ-นามสกุล (TH)" value={draft.nameTh}     onChange={(v) => set('nameTh', v)} />
             <AKVEdit k="ชื่อ-นามสกุล (EN)" value={draft.nameEn}     onChange={(v) => set('nameEn', v)} />
             <AKVEdit k="ชื่อเล่น"           value={draft.nicknameTh} onChange={(v) => set('nicknameTh', v)} />
-            <AKVEdit k="เพศ"                value={draft.gender}     onChange={(v) => set('gender', v)} />
-            <AKVEdit k="วัน/เดือน/ปีเกิด"  value={draft.dob}        onChange={(v) => set('dob', v)} />
+            <AKVEdit k="เพศ"                value={draft.gender}     onChange={(v) => set('gender', v)} options={['', 'Male', 'Female']} />
+            <AKVEdit k="วัน/เดือน/ปีเกิด"  value={draft.dob}        onChange={(v) => set('dob', v)} type="date" />
             <AKVEdit k="อายุ" type="number" value={draft.age}        onChange={(v) => set('age', v)} />
             <AKVEdit k="เลขบัตรประชาชน"    value={draft.citizenId}  onChange={(v) => set('citizenId', v)} />
           </>
@@ -201,7 +201,7 @@ function GeneralSection({ u, editing, draft, onDraftChange }) {
 
 // ─── Job section ──────────────────────────────────────────────────────────────
 
-function JobSection({ j, editing, draft, onDraftChange, approverUserIds = [], allUsers = [], navigate }) {
+function JobSection({ j, editing, draft, onDraftChange, approverUserIds = [], allUsers = [], navigate, employmentTypes = [] }) {
   const set = (k, v) => onDraftChange({ ...draft, [k]: v })
   const usersById = Object.fromEntries((allUsers || []).map((u) => [u.id, u]))
   const approverList = approverUserIds.map((id) => usersById[id] || null)
@@ -217,17 +217,19 @@ function JobSection({ j, editing, draft, onDraftChange, approverUserIds = [], al
   return (
     <>
       <AGroup title="ตำแหน่งและสังกัด" cols={3}>
-        <AKV k="รหัสพนักงาน" v={j.code} mono />
+        {editing
+          ? <AKVEdit k="รหัสพนักงาน" value={draft.code} onChange={(v) => set('code', v)} />
+          : <AKV k="รหัสพนักงาน" v={j.code} mono />}
         {editing ? (
           <>
             <AKVEdit k="ตำแหน่งงาน"      value={draft.roleTh}         onChange={(v) => set('roleTh', v)} />
             <AKVEdit k="สังกัดฝ่าย/แผนก"  value={draft.department}     onChange={(v) => set('department', v)} options={draft.department && !DEPARTMENTS.includes(draft.department) ? [draft.department, ...DEPARTMENTS] : DEPARTMENTS} />
             <AKVEdit k="ระดับพนักงาน"     value={draft.employeeLevel}  onChange={(v) => set('employeeLevel', v)} options={JOB_LEVELS} />
-            <AKVEdit k="ประเภทพนักงาน"    value={draft.type}           onChange={(v) => set('type', v)} />
-            <AKVEdit k="วันเริ่มงาน"      value={draft.startDate}      onChange={(v) => set('startDate', v)} />
+            <AKVEdit k="ประเภทพนักงาน"    value={draft.type}           onChange={(v) => set('type', v)} options={employmentTypes.length ? (draft.type && !employmentTypes.includes(draft.type) ? [draft.type, ...employmentTypes] : ['', ...employmentTypes]) : undefined} />
+            <AKVEdit k="วันเริ่มงาน"      value={draft.startDate}      onChange={(v) => set('startDate', v)} type="date" />
             <AKVEdit k="อายุงาน"          value={draft.tenure}         onChange={(v) => set('tenure', v)} />
-            <AKVEdit k="วันเริ่มทดลองงาน" value={draft.probationStart}  onChange={(v) => set('probationStart', v)} />
-            <AKVEdit k="วันผ่านทดลองงาน"  value={draft.probationEnd}   onChange={(v) => set('probationEnd', v)} />
+            <AKVEdit k="วันเริ่มทดลองงาน" value={draft.probationStart}  onChange={(v) => set('probationStart', v)} type="date" />
+            <AKVEdit k="วันผ่านทดลองงาน"  value={draft.probationEnd}   onChange={(v) => set('probationEnd', v)} type="date" />
             <AKVEdit k="เงินเดือน"        value={draft.salary}         onChange={(v) => set('salary', v)} />
           </>
         ) : (
@@ -348,7 +350,12 @@ export default function UserAccount() {
   const [allUsers, setAllUsers] = useState([])
   const [profile, setProfile] = useState(null)
   const [loaded, setLoaded] = useState(false)
+  const [employmentTypes, setEmploymentTypes] = useState([])
   const [subTab, setSubTab] = useState('general')
+
+  useEffect(() => {
+    getEmploymentTypes().then(setEmploymentTypes).catch(() => {})
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -368,6 +375,7 @@ export default function UserAccount() {
   const [editingTab, setEditingTab] = useState(null)
   const [generalDraft, setGeneralDraft] = useState(null)
   const [jobDraft, setJobDraft] = useState(null)
+  const [editError, setEditError] = useState('')
 
   const fileInputRef = useRef(null)
   const [uploadFile, setUploadFile] = useState(null)
@@ -375,22 +383,34 @@ export default function UserAccount() {
 
   const isEditing = editingTab === subTab
 
-  const resetEdit = () => { setEditingTab(null); setGeneralDraft(null); setJobDraft(null) }
+  const resetEdit = () => { setEditingTab(null); setGeneralDraft(null); setJobDraft(null); setEditError('') }
 
   const handleSubTab = (id) => { setSubTab(id); resetEdit() }
 
   const startEdit = () => {
     if (subTab === 'general')  setGeneralDraft(JSON.parse(JSON.stringify(profile.user)))
-    if (subTab === 'job')      setJobDraft(JSON.parse(JSON.stringify(profile.job)))
+    if (subTab === 'job') {
+      const j = JSON.parse(JSON.stringify(profile.job))
+      if (!j.employeeLevel) j.employeeLevel = JOB_LEVELS[0]
+      setJobDraft(j)
+    }
     setEditingTab(subTab)
   }
 
   const saveEdit = async () => {
-    let updated
-    if (subTab === 'general')  updated = await updateAccountProfile(user.id, { user: generalDraft })
-    if (subTab === 'job')      updated = await updateAccountProfile(user.id, { job: jobDraft })
-    if (updated) setProfile(updated)
-    resetEdit()
+    setEditError('')
+    try {
+      let updated
+      if (subTab === 'general')  updated = await updateAccountProfile(user.id, { user: generalDraft })
+      if (subTab === 'job')      updated = await updateAccountProfile(user.id, { job: jobDraft })
+      if (updated) setProfile(updated)
+      const renamedId = subTab === 'job' && updated?.job?.code && updated.job.code !== employeeId
+        ? updated.job.code : null
+      resetEdit()
+      if (renamedId) navigate(`/users/${renamedId}`, { replace: true })
+    } catch (err) {
+      setEditError(err.message || 'เกิดข้อผิดพลาด ไม่สามารถบันทึกได้')
+    }
   }
 
   const handleFileSelect = (e) => {
@@ -478,10 +498,13 @@ export default function UserAccount() {
       </div>
 
       {/* Content */}
+      {editError && (
+        <div className="uf-error-banner" style={{ margin: '0 0 12px' }}>{editError}</div>
+      )}
       {profile && (
         <div className="acct-card">
           {subTab === 'general' && <GeneralSection u={profile.user} editing={isEditing} draft={generalDraft || profile.user} onDraftChange={setGeneralDraft} />}
-          {subTab === 'job'     && <JobSection j={profile.job} editing={isEditing} draft={jobDraft || profile.job} onDraftChange={setJobDraft} approverUserIds={user?.approverUserIds || []} allUsers={allUsers} navigate={navigate} />}
+          {subTab === 'job'     && <JobSection j={profile.job} editing={isEditing} draft={jobDraft || profile.job} onDraftChange={setJobDraft} approverUserIds={user?.approverUserIds || []} allUsers={allUsers} navigate={navigate} employmentTypes={employmentTypes} />}
           {subTab === 'docs'    && <DocsSection documents={profile.documents} onDelete={handleDeleteDoc} />}
         </div>
       )}

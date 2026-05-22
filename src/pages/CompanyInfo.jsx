@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MdSave, MdArrowBack, MdSync, MdBusiness } from 'react-icons/md'
 import Layout from '../components/Layout'
-import { getUsers, getAccountProfile, updateAccountProfile } from '../store/store'
+import { getSettings, updateSettings } from '../store/store'
 import './Users.css'         // .acct-header, .acct-card, .btn-*
 import './CompanyInfo.css'
 
@@ -19,7 +19,6 @@ export default function CompanyInfo() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [users, setUsers] = useState([])
   const [draft, setDraft] = useState({ ...DEFAULT_COMPANY })
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -28,16 +27,8 @@ export default function CompanyInfo() {
     let cancelled = false
     async function load() {
       try {
-        const list = await getUsers()
-        if (cancelled) return
-        setUsers(list || [])
-        const first = list?.[0]
-        if (first) {
-          const profile = await getAccountProfile(first.id)
-          if (!cancelled && profile) {
-            setDraft({ ...DEFAULT_COMPANY, ...(profile.company || {}) })
-          }
-        }
+        const s = await getSettings()
+        if (!cancelled && s) setDraft({ ...DEFAULT_COMPANY, ...(s.company || {}) })
       } catch (err) {
         if (!cancelled) setError(err.message || 'โหลดข้อมูลไม่สำเร็จ')
       } finally {
@@ -59,10 +50,8 @@ export default function CompanyInfo() {
     setError('')
     setMessage('')
     try {
-      await Promise.all(
-        users.map((user) => updateAccountProfile(user.id, { company: draft }))
-      )
-      setMessage(`บันทึกข้อมูลบริษัทให้พนักงาน ${users.length} คนเรียบร้อย`)
+      await updateSettings({ company: draft })
+      setMessage('บันทึกข้อมูลบริษัทเรียบร้อย')
     } catch (err) {
       setError(err.message || 'บันทึกข้อมูลไม่สำเร็จ')
     } finally {
@@ -84,7 +73,7 @@ export default function CompanyInfo() {
           <button className="btn-ghost" onClick={() => navigate('/data-management')} disabled={saving}>
             ยกเลิก
           </button>
-          <button className="btn-primary" onClick={save} disabled={loading || saving || users.length === 0}>
+          <button className="btn-primary" onClick={save} disabled={loading || saving}>
             <MdSave /> {saving ? 'กำลังบันทึก…' : 'บันทึก'}
           </button>
         </div>

@@ -5,12 +5,32 @@ import {
   MdLockOutline, MdClose, MdCheckCircle, MdErrorOutline,
 } from 'react-icons/md'
 import Layout from '../components/Layout'
-import { addUser, getUsers } from '../store/store'
+import { addUser, getUsers, getAllUserIds } from '../store/store'
 import './Users.css'
 
 const USER_LEVELS = ['Project Level', 'Board Level', 'Director Level']
+const DEPARTMENTS = [
+  'Board of Directors',
+  'Good Governance Research and Learning Department',
+  'Collaboration and Coordination Department',
+  'Accounting and Finance Department',
+  'Open Data for Transparency & Participation Department',
+]
 const EMPTY_FORM = {
-  nameTh: '', nicknameTh: '', employeeId: '', email: '', employeeLevel: 'Project Level', password: '',
+  employeeId: '', nameTh: '', nameEn: '', nicknameTh: '',
+  email: '', employeeLevel: 'Project Level',
+  department: '', roleTh: '', startDate: '',
+  password: '',
+}
+
+function suggestEmployeeId(existingIds) {
+  const set = new Set(existingIds.map((id) => id.toUpperCase()))
+  const nums = existingIds
+    .map((id) => { const m = id.match(/^H(\d+)$/i); return m ? parseInt(m[1], 10) : null })
+    .filter((n) => n !== null)
+  let next = Math.max(nums.length ? Math.max(...nums) + 1 : 44, 44)
+  while (set.has('H' + String(next).padStart(4, '0'))) next++
+  return 'H' + String(next).padStart(4, '0')
 }
 
 function generatePassword() {
@@ -33,17 +53,31 @@ export default function Adduser() {
   const navigate = useNavigate()
   const [form, setForm] = useState(() => ({ ...EMPTY_FORM, password: generatePassword() }))
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [existingIds, setExistingIds] = useState([])
+  const [createdCredentials, setCreatedCredentials] = useState(null) // { email, password }
+  const [showCreatedPw, setShowCreatedPw] = useState(false)
+  const [copiedCreated, setCopiedCreated] = useState(false)
 
   useEffect(() => {
-    getUsers()
-      .then((users) => setExistingIds(users.map((u) => (u.employeeId || '').trim())))
+    getAllUserIds()
+      .then((ids) => {
+        const trimmed = ids.map((id) => (id || '').trim()).filter(Boolean)
+        setExistingIds(trimmed)
+        setForm((f) => ({ ...f, employeeId: f.employeeId || suggestEmployeeId(trimmed) }))
+      })
       .catch(() => setExistingIds([]))
   }, [])
 
   const trimmedId = form.employeeId.trim()
   const idIsDuplicate = trimmedId !== '' && existingIds.includes(trimmedId)
-  const canSave = !saving && form.nameTh.trim() !== '' && trimmedId !== '' && !idIsDuplicate
+  const canSave = !saving
+    && trimmedId !== '' && !idIsDuplicate
+    && form.nameTh.trim() !== ''
+    && form.email.trim() !== ''
+    && form.department !== ''
+    && form.roleTh.trim() !== ''
+    && form.startDate !== ''
 
   // Password modal state
   const [pwOpen, setPwOpen] = useState(false)
@@ -71,12 +105,23 @@ export default function Adduser() {
   const handleSave = async () => {
     if (!canSave) return
     setSaving(true)
+    setSaveError('')
+    const savedEmail = form.email.trim().toLowerCase()
+    const savedPassword = form.password
     try {
       await addUser({ ...form, employeeId: trimmedId, initial: getInitials(form.nameEn || form.nameTh) })
-      navigate('/users')
+      setCreatedCredentials({ email: savedEmail, password: savedPassword })
+    } catch (err) {
+      setSaveError(err.message || 'เกิดข้อผิดพลาด ไม่สามารถบันทึกได้')
     } finally {
       setSaving(false)
     }
+  }
+
+  const copyCreatedPassword = () => {
+    navigator.clipboard.writeText(createdCredentials?.password || '')
+    setCopiedCreated(true)
+    setTimeout(() => setCopiedCreated(false), 2000)
   }
 
   const field = (key, label, type = 'text', options) => (
@@ -110,6 +155,10 @@ export default function Adduser() {
         </div>
       </div>
 
+      {saveError && (
+        <div className="uf-error-banner"><MdErrorOutline /> {saveError}</div>
+      )}
+
       <div className="acct-card">
         <div className="uf-grid">
           <label className="uf-field">
@@ -117,17 +166,18 @@ export default function Adduser() {
             <input
               type="text"
               value={form.employeeId}
-              onChange={(e) => setForm((f) => ({ ...f, employeeId: e.target.value }))}
-              className={idIsDuplicate ? 'uf-input--error' : ''}
+              readOnly
+              className="uf-input--readonly"
             />
-            {idIsDuplicate && (
-              <span className="uf-error"><MdErrorOutline /> รหัสพนักงานนี้มีในระบบแล้ว</span>
-            )}
           </label>
-          {field('nameTh', 'ชื่อ-นามสกุล')}
-          {field('nicknameTh', 'ชื่อเล่น')}
-          {field('email', 'อีเมล', 'email')}
-          {field('employeeLevel', 'ระดับการเข้าถึง', 'text', USER_LEVELS)}
+          {field('nameTh',      'ชื่อ-นามสกุล (TH) *')}
+          {field('nameEn',      'ชื่อ-นามสกุล (EN)')}
+          {field('nicknameTh',  'ชื่อเล่น')}
+          {field('email',       'อีเมล *', 'email')}
+          {field('department',  'แผนก *', 'text', ['', ...DEPARTMENTS])}
+          {field('roleTh',      'ตำแหน่งงาน *')}
+          {field('employeeLevel', 'ระดับพนักงาน *', 'text', USER_LEVELS)}
+          {field('startDate',   'วันเริ่มงาน *', 'date')}
           <div className="uf-field uf-field--full">
             <span>รหัสผ่านเริ่มต้น</span>
             <button type="button" className="pw-set-btn" onClick={openPwModal}>
@@ -178,6 +228,53 @@ export default function Adduser() {
             <div className="modal-footer">
               <button className="btn-ghost" onClick={closePwModal}>ยกเลิก</button>
               <button className="btn-primary" onClick={confirmPw}><MdSave /> ยืนยัน</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success: show credentials modal */}
+      {createdCredentials && (
+        <div className="modal-overlay">
+          <div className="modal modal--sm" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <h3><MdCheckCircle style={{ color: 'var(--green, #16a34a)', marginRight: 6 }} /> เพิ่มพนักงานสำเร็จ</h3>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: 13, color: 'var(--ink-2)', marginBottom: 14 }}>
+                บันทึกข้อมูลเข้าสู่ระบบสำเร็จ กรุณาแจ้งข้อมูลเข้าสู่ระบบให้พนักงาน
+              </p>
+              <label className="uf-field uf-field--full">
+                <span>อีเมล</span>
+                <div className="pw-gen-row">
+                  <div className="pw-gen-input-wrap" style={{ flex: 1 }}>
+                    <input type="text" value={createdCredentials.email} readOnly className="pw-gen-input" />
+                  </div>
+                </div>
+              </label>
+              <label className="uf-field uf-field--full" style={{ marginTop: 10 }}>
+                <span>รหัสผ่านเริ่มต้น</span>
+                <div className="pw-gen-row">
+                  <div className="pw-gen-input-wrap">
+                    <input
+                      type={showCreatedPw ? 'text' : 'password'}
+                      value={createdCredentials.password}
+                      readOnly
+                      className="pw-gen-input"
+                    />
+                    <button type="button" className="pw-eye" onClick={() => setShowCreatedPw((v) => !v)}>
+                      {showCreatedPw ? <MdVisibilityOff /> : <MdVisibility />}
+                    </button>
+                  </div>
+                  <button type="button" className={'pw-action-btn' + (copiedCreated ? ' pw-action-btn--copied' : '')} title="คัดลอก" onClick={copyCreatedPassword}>
+                    <MdContentCopy />
+                    {copiedCreated && <span className="pw-copied-label">คัดลอกแล้ว</span>}
+                  </button>
+                </div>
+              </label>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-primary" onClick={() => navigate('/users')}>ตกลง</button>
             </div>
           </div>
         </div>

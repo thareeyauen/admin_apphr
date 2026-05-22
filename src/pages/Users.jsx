@@ -6,7 +6,7 @@ import {
   MdLockReset,
 } from 'react-icons/md'
 import Layout from '../components/Layout'
-import { getUsers, updateUser, deleteUser } from '../store/store'
+import { getUsers, updateUser, deleteUser, resetUserPassword } from '../store/store'
 import './Users.css'
 
 function generatePassword() {
@@ -66,8 +66,7 @@ export default function Users() {
     setTimeout(() => setCopiedReset(false), 2000)
   }
   const confirmReset = async () => {
-    const next = await updateUser(resetPw.id, { password: resetPw.password })
-    setUsers(next)
+    await resetUserPassword(resetPw.id, resetPw.password)
     setResetPw(null)
   }
 
