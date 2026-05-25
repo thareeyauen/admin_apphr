@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  MdAdd, MdDelete, MdSearch, MdClose,
+  MdAdd, MdSearch, MdClose,
   MdAccountCircle, MdRefresh, MdVisibility, MdVisibilityOff, MdContentCopy,
   MdLockReset,
 } from 'react-icons/md'
 import Layout from '../components/Layout'
-import { getUsers, updateUser, deleteUser, resetUserPassword } from '../store/store'
+import { getUsers, resetUserPassword } from '../store/store'
 import './Users.css'
 
 function generatePassword() {
@@ -33,8 +33,6 @@ export default function Users() {
   useEffect(() => {
     getUsers().then(setUsers).catch(() => setUsers([]))
   }, [])
-  const [toDelete, setToDelete] = useState(null)
-
   // Reset password modal state
   const [resetPw, setResetPw] = useState(null) // { id, name, password }
   const [showResetPw, setShowResetPw] = useState(false)
@@ -48,12 +46,6 @@ export default function Users() {
     const dept = (u.department || '').toLowerCase()
     return nameTh.includes(q) || empId.includes(q) || dept.includes(q)
   })
-
-  const handleDeleteUser = async () => {
-    const next = await deleteUser(toDelete)
-    setUsers(next)
-    setToDelete(null)
-  }
 
   const openResetPw = (u) => {
     setResetPw({ id: u.id, name: u.nameTh, password: generatePassword() })
@@ -108,7 +100,6 @@ export default function Users() {
                   <div className="row-actions">
                     <button className="act-btn act-btn--acct" title="ดูข้อมูล Account" onClick={() => navigate('/users/' + u.employeeId)}><MdAccountCircle /></button>
                     <button className="act-btn act-btn--edit" title="Reset Password" onClick={() => openResetPw(u)}><MdLockReset /></button>
-                    <button className="act-btn act-btn--del"  onClick={() => setToDelete(u.id)}><MdDelete /></button>
                   </div>
                 </td>
               </tr>
@@ -162,24 +153,6 @@ export default function Users() {
         </div>
       )}
 
-      {/* Delete confirm */}
-      {toDelete && (
-        <div className="modal-overlay" onClick={() => setToDelete(null)}>
-          <div className="modal modal--sm" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-head">
-              <h3>ลบพนักงาน</h3>
-              <button className="modal-close" onClick={() => setToDelete(null)}><MdClose /></button>
-            </div>
-            <div className="modal-body">
-              <p>ต้องการลบพนักงานนี้ออกจากระบบ? การกระทำนี้ไม่สามารถย้อนกลับได้</p>
-            </div>
-            <div className="modal-footer">
-              <button className="btn-ghost" onClick={() => setToDelete(null)}>ยกเลิก</button>
-              <button className="btn-danger" onClick={handleDeleteUser}>ลบ</button>
-            </div>
-          </div>
-        </div>
-      )}
     </Layout>
   )
 }

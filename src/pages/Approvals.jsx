@@ -23,7 +23,7 @@ export default function Approvals() {
   const [selectedUserId, setSelectedUserId] = useState(null)
   const [query, setQuery] = useState('')
   const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(['', ''])
+  const [draft, setDraft] = useState([''])
   const [justSaved, setJustSaved] = useState(false)
   const [saving, setSaving] = useState(false)
 
@@ -66,15 +66,12 @@ export default function Approvals() {
   }
 
   const startEdit = () => {
-    setDraft([
-      currentApprovers[0] || '',
-      currentApprovers[1] || '',
-    ])
+    setDraft([currentApprovers[0] || ''])
     setEditing(true)
   }
   const cancelEdit = () => {
     setEditing(false)
-    setDraft(['', ''])
+    setDraft([''])
   }
   const save = async () => {
     if (!selected) return
@@ -210,34 +207,29 @@ export default function Approvals() {
                 </div>
               ) : (
                 <div className="ap-slots">
-                  {[0, 1].map((idx) => (
-                    <div key={idx} className="ap-slot">
-                      <p className="ap-slot-label">
-                        ผู้อนุมัติคนที่ {idx + 1}
-                        {idx === 1 && <span className="ap-slot-optional"> (ทางเลือก)</span>}
-                      </p>
-                      {editing ? (
-                        <select
-                          className="ap-slot-select"
-                          value={draft[idx]}
-                          onChange={(e) => setSlot(idx, e.target.value)}
-                        >
-                          <option value="">— ไม่ระบุ —</option>
-                          {candidates.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.nameTh} ({c.employeeLevel}) · {c.department}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <div className="ap-slot-display">
-                          {currentApprovers[idx]
-                            ? renderApproverChip(currentApprovers[idx])
-                            : <span className="ap-slot-empty">— ยังไม่ได้กำหนด —</span>}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                  <div className="ap-slot">
+                    <p className="ap-slot-label">ผู้อนุมัติ</p>
+                    {editing ? (
+                      <select
+                        className="ap-slot-select"
+                        value={draft[0]}
+                        onChange={(e) => setSlot(0, e.target.value)}
+                      >
+                        <option value="">— ไม่ระบุ —</option>
+                        {candidates.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.nameTh} ({c.employeeLevel}) · {c.department}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <div className="ap-slot-display">
+                        {currentApprovers[0]
+                          ? renderApproverChip(currentApprovers[0])
+                          : <span className="ap-slot-empty">— ยังไม่ได้กำหนด —</span>}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 

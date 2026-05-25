@@ -82,6 +82,14 @@ export async function getEmploymentTypes() {
   return await api('GET', '/lookups/employment-types');
 }
 
+export async function getPositions() {
+  return await api('GET', '/lookups/positions');
+}
+
+export async function getBanks() {
+  return await api('GET', '/lookups/banks');
+}
+
 // ─── Admin Accounts ──────────────────────────────────────────────────────────
 export async function getAdmins() {
   return await api('GET', '/admins');
@@ -183,6 +191,14 @@ export async function getRequests() {
   return list.map((r) => ({
     ...r,
     createdAt: r.createdAt ? r.createdAt.slice(0, 10) : '',
+  }));
+}
+export async function getDeletedRequests() {
+  const list = await api('GET', '/requests/deleted');
+  return list.map((r) => ({
+    ...r,
+    createdAt: r.createdAt ? r.createdAt.slice(0, 10) : '',
+    deletedAt: r.deletedAt ? r.deletedAt.slice(0, 10) : '',
   }));
 }
 export async function approveRequest(id) {

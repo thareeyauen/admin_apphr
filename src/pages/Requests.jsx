@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MdCheck, MdClose, MdFilterList, MdEdit, MdDelete, MdSave, MdAdd } from 'react-icons/md'
 import Layout from '../components/Layout'
-import { getRequests, approveRequest, rejectRequest, updateRequest, deleteRequest } from '../store/store'
+import { getRequests, getDeletedRequests, approveRequest, rejectRequest, updateRequest, deleteRequest } from '../store/store'
 import './Requests.css'
 
 const TABS = [
@@ -10,6 +10,7 @@ const TABS = [
   { key: 'pending',  label: 'รอดำเนินการ' },
   { key: 'approved', label: 'อนุมัติแล้ว' },
   { key: 'rejected', label: 'ปฏิเสธแล้ว' },
+  { key: 'deleted',  label: 'ลบ/ยกเลิก' },
 ]
 const TYPE_LABEL = {
   'Annual Leave':        'ลาพักร้อน',
@@ -31,6 +32,7 @@ const STATUSES = ['pending', 'approved', 'rejected']
 export default function Requests() {
   const navigate = useNavigate()
   const [requests, setRequests] = useState([])
+  const [deletedRequests, setDeletedRequests] = useState([])
   const [tab, setTab] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
   const [confirm, setConfirm] = useState(null) // { id, action: 'approve'|'reject' }
@@ -39,7 +41,13 @@ export default function Requests() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    getRequests().then(setRequests).catch(() => setRequests([]))
+    Promise.all([
+      getRequests().catch(() => []),
+      getDeletedRequests().catch(() => []),
+    ]).then(([reqs, deleted]) => {
+      setRequests(reqs)
+      setDeletedRequests(deleted)
+    })
   }, [])
 
   const pendingCount = useMemo(() => requests.filter((r) => r.status === 'pending').length, [requests])
@@ -104,7 +112,9 @@ export default function Requests() {
     setSaving(true)
     try {
       const next = await deleteRequest(toDelete.id)
+      const deleted = await getDeletedRequests().catch(() => [])
       setRequests(next)
+      setDeletedRequests(deleted)
       setToDelete(null)
     } finally {
       setSaving(false)
@@ -129,23 +139,25 @@ export default function Requests() {
           ))}
         </div>
         <div className="req-toolbar-right">
-          <div className="req-type-filter">
-            <MdFilterList />
-            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
-              <option value="all">ทุกประเภท</option>
-              {typeOptions.map((t) => (
-                <option key={t} value={t}>{TYPE_LABEL[t] || t}</option>
-              ))}
-            </select>
-            {typeFilter !== 'all' && (
-              <button
-                type="button"
-                className="req-type-filter-clear"
-                onClick={() => setTypeFilter('all')}
-                title="ล้างตัวกรอง"
-              ><MdClose /></button>
-            )}
-          </div>
+          {tab !== 'deleted' && (
+            <div className="req-type-filter">
+              <MdFilterList />
+              <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+                <option value="all">ทุกประเภท</option>
+                {typeOptions.map((t) => (
+                  <option key={t} value={t}>{TYPE_LABEL[t] || t}</option>
+                ))}
+              </select>
+              {typeFilter !== 'all' && (
+                <button
+                  type="button"
+                  className="req-type-filter-clear"
+                  onClick={() => setTypeFilter('all')}
+                  title="ล้างตัวกรอง"
+                ><MdClose /></button>
+              )}
+            </div>
+          )}
           <button className="req-btn-new" onClick={() => navigate('/requests/new')}>
             <MdAdd /> สร้างคำขอใหม่
           </button>
@@ -153,59 +165,88 @@ export default function Requests() {
       </div>
 
       <div className="req-card">
-        <table className="req-table">
-          <thead>
-            <tr>
-              <th>พนักงาน</th><th>ประเภทคำขอ</th><th>รายละเอียด</th>
-              <th>วันที่สร้าง</th><th>สถานะ</th><th>การดำเนินการ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((r) => (
-              <tr key={r.id}>
-                <td>
-                  <p className="req-owner">{r.ownerName}</p>
-                  <p className="req-owner-id">{r.ownerKey}</p>
-                </td>
-                <td><span className="req-type">{TYPE_LABEL[r.type] || r.type}</span></td>
-                <td className="req-detail">{r.detail}</td>
-                <td className="req-date">{r.createdAt}</td>
-                <td><span className={`badge badge--${r.status}`}>{STATUS_LABEL[r.status]}</span></td>
-                <td>
-                  <div className="row-actions">
-                    {r.status === 'pending' && (
-                      <>
-                        <button
-                          className="act-btn act-btn--approve"
-                          title="อนุมัติ"
-                          onClick={() => setConfirm({ request: r, action: 'approve' })}
-                        ><MdCheck /></button>
-                        <button
-                          className="act-btn act-btn--reject"
-                          title="ปฏิเสธ"
-                          onClick={() => setConfirm({ request: r, action: 'reject' })}
-                        ><MdClose /></button>
-                      </>
-                    )}
-                    <button
-                      className="act-btn act-btn--edit"
-                      title="แก้ไขคำขอ"
-                      onClick={() => openEdit(r)}
-                    ><MdEdit /></button>
-                    <button
-                      className="act-btn act-btn--del"
-                      title="ลบคำขอ"
-                      onClick={() => setToDelete(r)}
-                    ><MdDelete /></button>
-                  </div>
-                </td>
+        {tab === 'deleted' ? (
+          <table className="req-table">
+            <thead>
+              <tr>
+                <th>พนักงาน</th><th>ประเภทคำขอ</th><th>รายละเอียด</th>
+                <th>วันที่สร้าง</th><th>สถานะก่อนลบ</th><th>วันที่ถูกลบ</th>
               </tr>
-            ))}
-            {filtered.length === 0 && (
-              <tr><td colSpan={6} className="table-empty">ไม่มีคำขอในรายการนี้</td></tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {deletedRequests.map((r) => (
+                <tr key={r.id}>
+                  <td>
+                    <p className="req-owner">{r.ownerName}</p>
+                    <p className="req-owner-id">{r.ownerKey}</p>
+                  </td>
+                  <td><span className="req-type">{TYPE_LABEL[r.type] || r.type}</span></td>
+                  <td className="req-detail">{r.detail}</td>
+                  <td className="req-date">{r.createdAt}</td>
+                  <td><span className={`badge badge--${r.status}`}>{STATUS_LABEL[r.status] || r.status}</span></td>
+                  <td className="req-date req-deleted-at">{r.deletedAt}</td>
+                </tr>
+              ))}
+              {deletedRequests.length === 0 && (
+                <tr><td colSpan={6} className="table-empty">ไม่มีประวัติคำขอที่ถูกลบ</td></tr>
+              )}
+            </tbody>
+          </table>
+        ) : (
+          <table className="req-table">
+            <thead>
+              <tr>
+                <th>พนักงาน</th><th>ประเภทคำขอ</th><th>รายละเอียด</th>
+                <th>วันที่สร้าง</th><th>สถานะ</th><th>การดำเนินการ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((r) => (
+                <tr key={r.id}>
+                  <td>
+                    <p className="req-owner">{r.ownerName}</p>
+                    <p className="req-owner-id">{r.ownerKey}</p>
+                  </td>
+                  <td><span className="req-type">{TYPE_LABEL[r.type] || r.type}</span></td>
+                  <td className="req-detail">{r.detail}</td>
+                  <td className="req-date">{r.createdAt}</td>
+                  <td><span className={`badge badge--${r.status}`}>{STATUS_LABEL[r.status]}</span></td>
+                  <td>
+                    <div className="row-actions">
+                      {r.status === 'pending' && (
+                        <>
+                          <button
+                            className="act-btn act-btn--approve"
+                            title="อนุมัติ"
+                            onClick={() => setConfirm({ request: r, action: 'approve' })}
+                          ><MdCheck /></button>
+                          <button
+                            className="act-btn act-btn--reject"
+                            title="ปฏิเสธ"
+                            onClick={() => setConfirm({ request: r, action: 'reject' })}
+                          ><MdClose /></button>
+                        </>
+                      )}
+                      <button
+                        className="act-btn act-btn--edit"
+                        title="แก้ไขคำขอ"
+                        onClick={() => openEdit(r)}
+                      ><MdEdit /></button>
+                      <button
+                        className="act-btn act-btn--del"
+                        title="ลบคำขอ"
+                        onClick={() => setToDelete(r)}
+                      ><MdDelete /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr><td colSpan={6} className="table-empty">ไม่มีคำขอในรายการนี้</td></tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {confirm && (

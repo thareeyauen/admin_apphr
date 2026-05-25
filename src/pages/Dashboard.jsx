@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   MdBusiness, MdHome, MdExplore, MdBeachAccess,
-  MdCheck, MdClose, MdCalendarToday, MdChevronLeft, MdChevronRight,
+  MdCalendarToday, MdChevronLeft, MdChevronRight,
 } from 'react-icons/md'
 import Layout from '../components/Layout'
-import { getUsers, getRequests, getCheckins, approveRequest, rejectRequest } from '../store/store'
+import { getUsers, getRequests, getCheckins } from '../store/store'
 import './Dashboard.css'
 
 const LEAVE_TYPES = [
@@ -184,9 +184,6 @@ export default function Dashboard() {
     [requests, selectedDateKey]
   )
 
-  const handleApprove = async (id) => { setRequests(await approveRequest(id)) }
-  const handleReject  = async (id) => { setRequests(await rejectRequest(id)) }
-
   // ─── Date controls ─────────────────────────────────────────────────────────
   const selectedDate = useMemo(() => dateFromKey(selectedDateKey), [selectedDateKey])
   const isToday = selectedDateKey === todayKey
@@ -334,18 +331,6 @@ export default function Dashboard() {
                   <p className="pending-card__detail">{r.detail || '—'}</p>
                   <div className="pending-card__actions">
                     <span className="pending-card__date">{r.date || r.dateKey || ''}</span>
-                    <div className="pending-card__btns">
-                      <button
-                        className="pending-btn pending-btn--reject"
-                        onClick={() => handleReject(r.id)}
-                        title="ปฏิเสธ"
-                      ><MdClose /></button>
-                      <button
-                        className="pending-btn pending-btn--approve"
-                        onClick={() => handleApprove(r.id)}
-                        title="อนุมัติ"
-                      ><MdCheck /></button>
-                    </div>
                   </div>
                 </article>
               ))}

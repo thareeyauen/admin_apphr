@@ -164,18 +164,6 @@ export default function LeaveEntitlement() {
     setTimeout(() => setJustSaved(false), 2000)
   }
 
-  // Sticky totals shown in detail header
-  const totalDays = useMemo(() => {
-    const src = editing ? draft : selectedEnt
-    return Object.values(src).reduce((s, v) => s + (Number(v) || 0), 0)
-  }, [editing, draft, selectedEnt])
-
-  const totalUsed = useMemo(
-    () => leaveTypes.reduce((s, t) => s + (usedForSelected[t.label] || 0), 0),
-    [leaveTypes, usedForSelected]
-  )
-  const totalRemaining = Math.max(totalDays - totalUsed, 0)
-
   const runSnapshot = async () => {
     setSnapshotState('running')
     try {
@@ -276,29 +264,6 @@ export default function LeaveEntitlement() {
                   )}
                 </div>
               </header>
-
-              <div className="le-summary">
-                <div className="le-summary-item">
-                  <p className="le-summary-label">จำนวนประเภท</p>
-                  <p className="le-summary-value">{leaveTypes.length}</p>
-                </div>
-                <div className="le-summary-item">
-                  <p className="le-summary-label">รวมสิทธิ์ทั้งหมด</p>
-                  <p className="le-summary-value">{totalDays} <span>วัน/ปี</span></p>
-                </div>
-                <div className="le-summary-item">
-                  <p className="le-summary-label">ใช้ไปแล้ว</p>
-                  <p className="le-summary-value">{totalUsed} <span>วัน</span></p>
-                </div>
-                <div className="le-summary-item">
-                  <p className="le-summary-label">คงเหลือ</p>
-                  <p className="le-summary-value le-summary-value--ok">{totalRemaining} <span>วัน</span></p>
-                </div>
-                <div className="le-summary-item le-summary-item--carry">
-                  <p className="le-summary-label">ยอดสะสมพักร้อน</p>
-                  <p className="le-summary-value le-summary-value--carry">{editing ? carryDraft : (Number(selectedUserEnt._annualCarryOver) || 0)} <span>วัน (จากปีก่อน · ไม่เกิน 20)</span></p>
-                </div>
-              </div>
 
               <div className="le-groups">
                 {sections.map((g) => {

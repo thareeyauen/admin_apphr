@@ -6,7 +6,7 @@ import {
   MdCloudUpload, MdClose,
 } from 'react-icons/md'
 import Layout from '../components/Layout'
-import { getUsers, getAccountProfile, updateAccountProfile, getEmploymentTypes } from '../store/store'
+import { getUsers, getAccountProfile, updateAccountProfile, getEmploymentTypes, getPositions, getBanks } from '../store/store'
 import './Users.css'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -101,7 +101,7 @@ function GeneralSection({ u, editing, draft, onDraftChange }) {
       <AGroup title="ข้อมูลส่วนตัว" cols={3}>
         {editing ? (
           <>
-            <AKVEdit k="คำนำหน้า"          value={draft.prefix}     onChange={(v) => set('prefix', v)} />
+            <AKVEdit k="คำนำหน้า"          value={draft.prefix}     onChange={(v) => set('prefix', v)} options={['', 'นาย', 'นาง', 'นางสาว', 'ดร.']} />
             <AKVEdit k="ชื่อ-นามสกุล (TH)" value={draft.nameTh}     onChange={(v) => set('nameTh', v)} />
             <AKVEdit k="ชื่อ-นามสกุล (EN)" value={draft.nameEn}     onChange={(v) => set('nameEn', v)} />
             <AKVEdit k="ชื่อเล่น"           value={draft.nicknameTh} onChange={(v) => set('nicknameTh', v)} />
@@ -201,7 +201,7 @@ function GeneralSection({ u, editing, draft, onDraftChange }) {
 
 // ─── Job section ──────────────────────────────────────────────────────────────
 
-function JobSection({ j, editing, draft, onDraftChange, approverUserIds = [], allUsers = [], navigate, employmentTypes = [] }) {
+function JobSection({ j, editing, draft, onDraftChange, approverUserIds = [], allUsers = [], navigate, employmentTypes = [], positions = [], banks = [] }) {
   const set = (k, v) => onDraftChange({ ...draft, [k]: v })
   const usersById = Object.fromEntries((allUsers || []).map((u) => [u.id, u]))
   const approverList = approverUserIds.map((id) => usersById[id] || null)
@@ -222,7 +222,7 @@ function JobSection({ j, editing, draft, onDraftChange, approverUserIds = [], al
           : <AKV k="รหัสพนักงาน" v={j.code} mono />}
         {editing ? (
           <>
-            <AKVEdit k="ตำแหน่งงาน"      value={draft.roleTh}         onChange={(v) => set('roleTh', v)} />
+            <AKVEdit k="ตำแหน่งงาน"      value={draft.roleTh}         onChange={(v) => set('roleTh', v)} options={positions.length ? (draft.roleTh && !positions.includes(draft.roleTh) ? [draft.roleTh, ...positions] : ['', ...positions]) : undefined} />
             <AKVEdit k="สังกัดฝ่าย/แผนก"  value={draft.department}     onChange={(v) => set('department', v)} options={draft.department && !DEPARTMENTS.includes(draft.department) ? [draft.department, ...DEPARTMENTS] : DEPARTMENTS} />
             <AKVEdit k="ระดับพนักงาน"     value={draft.employeeLevel}  onChange={(v) => set('employeeLevel', v)} options={JOB_LEVELS} />
             <AKVEdit k="ประเภทพนักงาน"    value={draft.type}           onChange={(v) => set('type', v)} options={employmentTypes.length ? (draft.type && !employmentTypes.includes(draft.type) ? [draft.type, ...employmentTypes] : ['', ...employmentTypes]) : undefined} />
@@ -249,7 +249,7 @@ function JobSection({ j, editing, draft, onDraftChange, approverUserIds = [], al
       <AGroup title="ข้อมูลธนาคาร" cols={3}>
         {editing ? (
           <>
-            <AKVEdit k="ชื่อธนาคาร" value={draft.bank?.name}    onChange={(v) => setBank('name', v)} />
+            <AKVEdit k="ชื่อธนาคาร" value={draft.bank?.name}    onChange={(v) => setBank('name', v)} options={banks.length ? (draft.bank?.name && !banks.includes(draft.bank.name) ? [draft.bank.name, ...banks] : ['', ...banks]) : undefined} />
             <AKVEdit k="สาขา"       value={draft.bank?.branch}  onChange={(v) => setBank('branch', v)} />
             <AKVEdit k="เลขบัญชี"   value={draft.bank?.acc}     onChange={(v) => setBank('acc', v)} />
             <AKVEdit k="ชื่อบัญชี"  value={draft.bank?.accName} onChange={(v) => setBank('accName', v)} />
@@ -351,10 +351,14 @@ export default function UserAccount() {
   const [profile, setProfile] = useState(null)
   const [loaded, setLoaded] = useState(false)
   const [employmentTypes, setEmploymentTypes] = useState([])
+  const [positions, setPositions] = useState([])
+  const [banks, setBanks] = useState([])
   const [subTab, setSubTab] = useState('general')
 
   useEffect(() => {
     getEmploymentTypes().then(setEmploymentTypes).catch(() => {})
+    getPositions().then(setPositions).catch(() => {})
+    getBanks().then(setBanks).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -504,7 +508,7 @@ export default function UserAccount() {
       {profile && (
         <div className="acct-card">
           {subTab === 'general' && <GeneralSection u={profile.user} editing={isEditing} draft={generalDraft || profile.user} onDraftChange={setGeneralDraft} />}
-          {subTab === 'job'     && <JobSection j={profile.job} editing={isEditing} draft={jobDraft || profile.job} onDraftChange={setJobDraft} approverUserIds={user?.approverUserIds || []} allUsers={allUsers} navigate={navigate} employmentTypes={employmentTypes} />}
+          {subTab === 'job'     && <JobSection j={profile.job} editing={isEditing} draft={jobDraft || profile.job} onDraftChange={setJobDraft} approverUserIds={user?.approverUserIds || []} allUsers={allUsers} navigate={navigate} employmentTypes={employmentTypes} positions={positions} banks={banks} />}
           {subTab === 'docs'    && <DocsSection documents={profile.documents} onDelete={handleDeleteDoc} />}
         </div>
       )}
