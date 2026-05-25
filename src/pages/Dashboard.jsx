@@ -7,16 +7,27 @@ import Layout from '../components/Layout'
 import { getUsers, getRequests, getCheckins, approveRequest, rejectRequest } from '../store/store'
 import './Dashboard.css'
 
-const LEAVE_TYPES = ['Annual Leave', 'Sick Leave', 'Personal Leave', 'Maternity Leave']
-const OUTSIDE_TYPES = ['Work Outside', 'Work Outsides']
+const LEAVE_TYPES = [
+  'Annual Leave', 'Sick Leave', 'Personal Leave', 'Maternity Leave',
+  'Compensation Leave', 'Ordination Leave', 'Unpaid Leave', 'Sterilization Leave',
+  'Training Leave', 'Military Leave', 'Paternity Leave',
+]
 const TYPE_LABEL = {
   'Annual Leave': 'ลาพักร้อน',
   'Sick Leave': 'ลาป่วย',
   'Personal Leave': 'ลากิจ',
   'Maternity Leave': 'ลาคลอด',
+  'Compensation Leave': 'ลาชดเชยทำงานวันหยุด',
+  'Ordination Leave': 'ลาบวช',
+  'Unpaid Leave': 'ลาไม่รับค่าจ้าง',
+  'Sterilization Leave': 'ลาทำหมัน',
+  'Training Leave': 'ลาฝึกอบรม',
+  'Military Leave': 'ลาราชการทหาร',
+  'Paternity Leave': 'ลาคลอด (พนักงานชาย)',
   'Overtime': 'ทำงานล่วงเวลา',
   'Work Outside': 'ทำงานนอกสถานที่',
   'Work Outsides': 'ทำงานนอกสถานที่',
+  'Request Documents': 'ขอเอกสาร',
 }
 
 // Matches the tone colors used on the user app's Landing page.
@@ -62,14 +73,16 @@ function isActiveOnDate(req, dateKey) {
   return dateKey >= startKey && dateKey <= endKey
 }
 
+// Status rules (mirrors the user app's Landing logic):
+// 1. Approved leave covering this date  →  'leave'  (employee is off, no check-in expected)
+// 2. Has a check-in for this date       →  derive office/wfh/offsite from the check-in location
+// 3. Otherwise                          →  'idle' (not checked in yet)
+// Work Outside requests do NOT change status — the employee still has to check in to confirm presence.
 function getStatusForEmployee(emp, checkinsByOwner, requestsByOwner, dateKey) {
   const empKey = emp.employeeId
   const reqs = requestsByOwner.get(empKey) || []
   if (reqs.some((r) => r.status === 'approved' && LEAVE_TYPES.includes(r.type) && isActiveOnDate(r, dateKey))) {
     return 'leave'
-  }
-  if (reqs.some((r) => r.status === 'approved' && OUTSIDE_TYPES.includes(r.type) && isActiveOnDate(r, dateKey))) {
-    return 'offsite'
   }
   const checkins = (checkinsByOwner.get(empKey) || []).filter((c) => c.dateKey === dateKey)
   if (checkins.length === 0) return 'idle'
