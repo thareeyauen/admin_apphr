@@ -1,7 +1,7 @@
 // API client for apphr-backend.
 // Keeps the public function names used across pages; most are now async.
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000/api';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
 const SESSION_KEY = 'admin_apphr_session';
 
 export const DEFAULT_ENTITLEMENTS = { annual: 7, sick: 30, personal: 4, maternity: 120 };
@@ -20,11 +20,21 @@ function authHeaders() {
 }
 
 async function api(method, path, body) {
+  const session = loadSession();
   const res = await fetch(API_BASE + path, {
     method,
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
+  // Auto-logout when a previously valid token is rejected by the server
+  // (expired / revoked). Skip when we never sent a token — that's just a
+  // failed login attempt.
+  if (res.status === 401 && session?.token) {
+    logout();
+    if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+      window.location.replace('/login');
+    }
+  }
   if (!res.ok) {
     let msg = 'request failed';
     try { msg = (await res.json()).error || msg; } catch { /* noop */ }

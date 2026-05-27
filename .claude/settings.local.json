@@ -37,7 +37,9 @@
       "Bash(ls \"C:/apphr_backend\" 2>&1 | head -30)",
       "Read(//c/apphr_backend/**)",
       "Bash(stat -c '%s' \"c:/admin_apphr/src/pages/Record.jsx\" \"c:/admin_apphr/src/pages/Record.css\" 2>&1)",
-      "Read(//c/admin_apphr/**)"
+      "Read(//c/admin_apphr/**)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:api.github.com)"
     ]
   }
 }
