@@ -39,6 +39,7 @@ export default function Requests() {
   const [editForm, setEditForm] = useState(null) // EMPTY_EDIT shape or null
   const [toDelete, setToDelete] = useState(null) // request object or null
   const [saving, setSaving] = useState(false)
+  const [actionError, setActionError] = useState('')
 
   useEffect(() => {
     Promise.all([
@@ -68,14 +69,20 @@ export default function Requests() {
 
   const handleConfirm = async () => {
     if (!confirm) return
+    console.log('[Requests] handleConfirm action=', confirm.action, 'request.id=', confirm.request?.id, 'request.type=', confirm.request?.type, 'request.status=', confirm.request?.status)
     setSaving(true)
+    setActionError('')
     try {
       const id = confirm.request?.id
       const next = await (confirm.action === 'approve'
         ? approveRequest(id)
         : rejectRequest(id))
+      console.log('[Requests] handleConfirm SUCCESS — refreshed list length=', next?.length)
       setRequests(next)
       setConfirm(null)
+    } catch (err) {
+      console.error('[Requests] handleConfirm ERROR:', err)
+      setActionError(err?.message || 'ไม่สามารถดำเนินการได้')
     } finally {
       setSaving(false)
     }
@@ -94,15 +101,18 @@ export default function Requests() {
       ownerKey: r.ownerKey || '',
     })
   }
-  const closeEdit = () => setEditForm(null)
+  const closeEdit = () => { setEditForm(null); setActionError('') }
   const handleSaveEdit = async () => {
     if (!editForm) return
     setSaving(true)
+    setActionError('')
     try {
       const { id, ownerName, ownerKey, ...patch } = editForm
       const next = await updateRequest(id, patch)
       setRequests(next)
       setEditForm(null)
+    } catch (err) {
+      setActionError(err?.message || 'ไม่สามารถบันทึกได้')
     } finally {
       setSaving(false)
     }
@@ -110,12 +120,15 @@ export default function Requests() {
   const handleDelete = async () => {
     if (!toDelete) return
     setSaving(true)
+    setActionError('')
     try {
       const next = await deleteRequest(toDelete.id)
       const deleted = await getDeletedRequests().catch(() => [])
       setRequests(next)
       setDeletedRequests(deleted)
       setToDelete(null)
+    } catch (err) {
+      setActionError(err?.message || 'ไม่สามารถลบได้')
     } finally {
       setSaving(false)
     }
@@ -250,11 +263,11 @@ export default function Requests() {
       </div>
 
       {confirm && (
-        <div className="modal-overlay" onClick={() => setConfirm(null)}>
+        <div className="modal-overlay" onClick={() => { setConfirm(null); setActionError('') }}>
           <div className="modal modal--sm" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <h3>{confirm.action === 'approve' ? 'ยืนยันการอนุมัติ' : 'ยืนยันการปฏิเสธ'}</h3>
-              <button className="modal-close" onClick={() => setConfirm(null)}><MdClose /></button>
+              <button className="modal-close" onClick={() => { setConfirm(null); setActionError('') }}><MdClose /></button>
             </div>
             <div className="modal-body">
               <p>
@@ -292,9 +305,14 @@ export default function Requests() {
                   หลังอนุมัติ ระบบจะหักวันลา {confirm.request.days} วัน จากสิทธิ์คงเหลือของพนักงานทันที
                 </p>
               )}
+              {actionError && (
+                <p style={{ marginTop: '10px', padding: '8px 12px', background: '#fdf2f2', border: '1px solid #f5c6c6', borderRadius: 8, color: '#c0392b', fontSize: 13 }}>
+                  {actionError}
+                </p>
+              )}
             </div>
             <div className="modal-footer">
-              <button className="btn-ghost" onClick={() => setConfirm(null)} disabled={saving}>ยกเลิก</button>
+              <button className="btn-ghost" onClick={() => { setConfirm(null); setActionError('') }} disabled={saving}>ยกเลิก</button>
               <button
                 className={confirm.action === 'approve' ? 'btn-approve' : 'btn-danger'}
                 onClick={handleConfirm}
@@ -382,6 +400,11 @@ export default function Requests() {
               <p className="req-edit-note">
                 การแก้ไขจะอัปเดตยอดสิทธิ์การลาของพนักงานโดยอัตโนมัติ (ระบบคำนวณจากคำขอจริงในระบบ)
               </p>
+              {actionError && (
+                <p style={{ marginTop: '10px', padding: '8px 12px', background: '#fdf2f2', border: '1px solid #f5c6c6', borderRadius: 8, color: '#c0392b', fontSize: 13 }}>
+                  {actionError}
+                </p>
+              )}
             </div>
             <div className="modal-footer">
               <button className="btn-ghost" onClick={closeEdit} disabled={saving}>ยกเลิก</button>
@@ -395,11 +418,11 @@ export default function Requests() {
 
       {/* Delete confirm modal */}
       {toDelete && (
-        <div className="modal-overlay" onClick={() => setToDelete(null)}>
+        <div className="modal-overlay" onClick={() => { setToDelete(null); setActionError('') }}>
           <div className="modal modal--sm" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <h3>ยืนยันการลบคำขอ</h3>
-              <button className="modal-close" onClick={() => setToDelete(null)}><MdClose /></button>
+              <button className="modal-close" onClick={() => { setToDelete(null); setActionError('') }}><MdClose /></button>
             </div>
             <div className="modal-body">
               <p>ต้องการ<strong>ลบ</strong>คำขอนี้ใช่หรือไม่? <span style={{ color: 'var(--red)' }}>การกระทำนี้ไม่สามารถย้อนกลับได้</span></p>
@@ -439,9 +462,14 @@ export default function Requests() {
                   คำขอนี้กำลังถูกนับใน "วันที่ใช้ไปแล้ว" จำนวน {toDelete.days} วัน — เมื่อลบ ระบบจะคืนยอดให้พนักงานอัตโนมัติ
                 </p>
               )}
+              {actionError && (
+                <p style={{ marginTop: '10px', padding: '8px 12px', background: '#fdf2f2', border: '1px solid #f5c6c6', borderRadius: 8, color: '#c0392b', fontSize: 13 }}>
+                  {actionError}
+                </p>
+              )}
             </div>
             <div className="modal-footer">
-              <button className="btn-ghost" onClick={() => setToDelete(null)} disabled={saving}>ยกเลิก</button>
+              <button className="btn-ghost" onClick={() => { setToDelete(null); setActionError('') }} disabled={saving}>ยกเลิก</button>
               <button className="btn-danger" onClick={handleDelete} disabled={saving}>
                 <MdDelete /> {saving ? 'กำลังลบ…' : 'ลบคำขอ'}
               </button>

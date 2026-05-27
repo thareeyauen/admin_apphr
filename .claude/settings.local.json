@@ -39,7 +39,8 @@
       "Bash(stat -c '%s' \"c:/admin_apphr/src/pages/Record.jsx\" \"c:/admin_apphr/src/pages/Record.css\" 2>&1)",
       "Read(//c/admin_apphr/**)",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:api.github.com)"
+      "WebFetch(domain:api.github.com)",
+      "Bash(ls c:/ | grep -i apphr)"
     ]
   }
 }
