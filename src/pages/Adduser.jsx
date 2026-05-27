@@ -6,6 +6,7 @@ import {
 } from 'react-icons/md'
 import Layout from '../components/Layout'
 import { addUser, getUsers, getAllUserIds } from '../store/store'
+import { getFieldError } from '../utils/validation'
 import './Users.css'
 
 const USER_LEVELS = ['Project Level', 'Board Level', 'Director Level']
@@ -52,6 +53,7 @@ function getInitials(name = '') {
 export default function Adduser() {
   const navigate = useNavigate()
   const [form, setForm] = useState(() => ({ ...EMPTY_FORM, password: generatePassword() }))
+  const [touched, setTouched] = useState({})
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
   const [existingIds, setExistingIds] = useState([])
@@ -71,10 +73,13 @@ export default function Adduser() {
 
   const trimmedId = form.employeeId.trim()
   const idIsDuplicate = trimmedId !== '' && existingIds.includes(trimmedId)
+  const emailError = getFieldError('email', form.email)
+  const nameEnError = getFieldError('nameEn', form.nameEn)
   const canSave = !saving
     && trimmedId !== '' && !idIsDuplicate
     && form.nameTh.trim() !== ''
-    && form.email.trim() !== ''
+    && !emailError
+    && !nameEnError
     && form.department !== ''
     && form.roleTh.trim() !== ''
     && form.startDate !== ''
@@ -124,18 +129,36 @@ export default function Adduser() {
     setTimeout(() => setCopiedCreated(false), 2000)
   }
 
-  const field = (key, label, type = 'text', options) => (
-    <label className="uf-field">
-      <span>{label}</span>
-      {options ? (
-        <select value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}>
-          {options.map((o) => <option key={o} value={o}>{o}</option>)}
-        </select>
-      ) : (
-        <input type={type} value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} />
-      )}
-    </label>
-  )
+  const field = (key, label, type = 'text', options) => {
+    const error = getFieldError(key, form[key])
+    const showError = !!(touched[key] && error)
+    const markTouched = () => setTouched((t) => (t[key] ? t : { ...t, [key]: true }))
+    return (
+      <label className="uf-field">
+        <span>{label}</span>
+        {options ? (
+          <select
+            value={form[key]}
+            onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+            onBlur={markTouched}
+          >
+            {options.map((o) => <option key={o} value={o}>{o}</option>)}
+          </select>
+        ) : (
+          <input
+            type={type}
+            value={form[key]}
+            onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+            onBlur={markTouched}
+            className={showError ? 'uf-input--error' : undefined}
+          />
+        )}
+        {showError && (
+          <span className="uf-error"><MdErrorOutline /> {error}</span>
+        )}
+      </label>
+    )
+  }
 
   return (
     <Layout title="เพิ่มพนักงาน">

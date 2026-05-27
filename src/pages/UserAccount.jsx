@@ -3,10 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   MdEdit, MdDelete, MdSave, MdArrowBack,
   MdPerson, MdWorkOutline, MdDescription,
-  MdCloudUpload, MdClose,
+  MdCloudUpload, MdClose, MdErrorOutline,
 } from 'react-icons/md'
 import Layout from '../components/Layout'
 import { getUsers, getAccountProfile, updateAccountProfile, getEmploymentTypes, getPositions, getBanks } from '../store/store'
+import { getFieldError } from '../utils/validation'
 import './Users.css'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -52,18 +53,22 @@ function AKV({ k, v, mono, multiline }) {
   )
 }
 
-function AKVEdit({ k, value, onChange, type = 'text', multiline = false, options }) {
+function AKVEdit({ k, value, onChange, type = 'text', multiline = false, options, error, onBlur }) {
+  const inputCls = 'akv-field' + (error ? ' uf-input--error' : '')
   return (
     <label className="akv akv--edit">
       <span className="akv-key">{k}</span>
       {options ? (
-        <select className="akv-field" value={value ?? ''} onChange={(e) => onChange(e.target.value)}>
+        <select className={inputCls} value={value ?? ''} onChange={(e) => onChange(e.target.value)} onBlur={onBlur}>
           {options.map((o) => <option key={o} value={o}>{o}</option>)}
         </select>
       ) : multiline ? (
-        <textarea className="akv-field akv-field--ta" value={value || ''} rows={3} onChange={(e) => onChange(e.target.value)} />
+        <textarea className={inputCls + ' akv-field--ta'} value={value || ''} rows={3} onChange={(e) => onChange(e.target.value)} onBlur={onBlur} />
       ) : (
-        <input className="akv-field" type={type} value={value ?? ''} onChange={(e) => onChange(type === 'number' ? Number(e.target.value) : e.target.value)} />
+        <input className={inputCls} type={type} value={value ?? ''} onChange={(e) => onChange(type === 'number' ? Number(e.target.value) : e.target.value)} onBlur={onBlur} />
+      )}
+      {error && (
+        <span className="uf-error"><MdErrorOutline /> {error}</span>
       )}
     </label>
   )
@@ -80,7 +85,7 @@ function AGroup({ title, cols = 3, children }) {
 
 // ─── General section ──────────────────────────────────────────────────────────
 
-function GeneralSection({ u, editing, draft, onDraftChange }) {
+function GeneralSection({ u, editing, draft, onDraftChange, errors = {}, touched = {}, onTouch = () => {} }) {
   const set = (k, v) => onDraftChange({ ...draft, [k]: v })
   const setEm = (k, v) => onDraftChange({ ...draft, emergency: { ...draft.emergency, [k]: v } })
   const setEdu = (i, k, v) => {
@@ -103,7 +108,13 @@ function GeneralSection({ u, editing, draft, onDraftChange }) {
           <>
             <AKVEdit k="คำนำหน้า"          value={draft.prefix}     onChange={(v) => set('prefix', v)} options={['', 'นาย', 'นาง', 'นางสาว', 'ดร.']} />
             <AKVEdit k="ชื่อ-นามสกุล (TH)" value={draft.nameTh}     onChange={(v) => set('nameTh', v)} />
-            <AKVEdit k="ชื่อ-นามสกุล (EN)" value={draft.nameEn}     onChange={(v) => set('nameEn', v)} />
+            <AKVEdit
+              k="ชื่อ-นามสกุล (EN)"
+              value={draft.nameEn}
+              onChange={(v) => set('nameEn', v)}
+              error={touched.nameEn ? errors.nameEn : ''}
+              onBlur={() => onTouch('nameEn')}
+            />
             <AKVEdit k="ชื่อเล่น"           value={draft.nicknameTh} onChange={(v) => set('nicknameTh', v)} />
             <AKVEdit k="เพศ"                value={draft.gender}     onChange={(v) => set('gender', v)} options={['', 'Male', 'Female']} />
             <AKVEdit k="วัน/เดือน/ปีเกิด"  value={draft.dob}        onChange={(v) => set('dob', v)} type="date" />
@@ -126,7 +137,14 @@ function GeneralSection({ u, editing, draft, onDraftChange }) {
       <AGroup title="ช่องทางติดต่อ" cols={3}>
         {editing ? (
           <>
-            <AKVEdit k="Email"    type="email" value={draft.email} onChange={(v) => set('email', v)} />
+            <AKVEdit
+              k="Email"
+              type="email"
+              value={draft.email}
+              onChange={(v) => set('email', v)}
+              error={touched.email ? errors.email : ''}
+              onBlur={() => onTouch('email')}
+            />
             <AKVEdit k="เบอร์โทร"             value={draft.phone} onChange={(v) => set('phone', v)} />
             <AKVEdit k="Line ID"              value={draft.line}  onChange={(v) => set('line', v)} />
           </>
@@ -380,6 +398,8 @@ export default function UserAccount() {
   const [generalDraft, setGeneralDraft] = useState(null)
   const [jobDraft, setJobDraft] = useState(null)
   const [editError, setEditError] = useState('')
+  const [touched, setTouched] = useState({})
+  const markTouched = (key) => setTouched((t) => (t[key] ? t : { ...t, [key]: true }))
 
   const fileInputRef = useRef(null)
   const [uploadFile, setUploadFile] = useState(null)
@@ -387,7 +407,7 @@ export default function UserAccount() {
 
   const isEditing = editingTab === subTab
 
-  const resetEdit = () => { setEditingTab(null); setGeneralDraft(null); setJobDraft(null); setEditError('') }
+  const resetEdit = () => { setEditingTab(null); setGeneralDraft(null); setJobDraft(null); setEditError(''); setTouched({}) }
 
   const handleSubTab = (id) => { setSubTab(id); resetEdit() }
 
@@ -398,11 +418,23 @@ export default function UserAccount() {
       if (!j.employeeLevel) j.employeeLevel = JOB_LEVELS[0]
       setJobDraft(j)
     }
+    setTouched({})
     setEditingTab(subTab)
   }
 
+  const generalErrors = {
+    email:  getFieldError('email',  generalDraft?.email),
+    nameEn: getFieldError('nameEn', generalDraft?.nameEn),
+  }
+  const hasGeneralErrors = Object.values(generalErrors).some(Boolean)
+  const canSaveCurrent = !isEditing || subTab !== 'general' || !hasGeneralErrors
+
   const saveEdit = async () => {
     setEditError('')
+    if (subTab === 'general' && hasGeneralErrors) {
+      setTouched({ email: true, nameEn: true })
+      return
+    }
     try {
       let updated
       if (subTab === 'general')  updated = await updateAccountProfile(user.id, { user: generalDraft })
@@ -475,7 +507,7 @@ export default function UserAccount() {
             isEditing ? (
               <>
                 <button className="btn-ghost"  onClick={resetEdit}>ยกเลิก</button>
-                <button className="btn-primary" onClick={saveEdit}><MdSave /> บันทึก</button>
+                <button className="btn-primary" onClick={saveEdit} disabled={!canSaveCurrent}><MdSave /> บันทึก</button>
               </>
             ) : (
               <button className="btn-primary" onClick={startEdit}><MdEdit /> แก้ไข</button>
@@ -507,7 +539,7 @@ export default function UserAccount() {
       )}
       {profile && (
         <div className="acct-card">
-          {subTab === 'general' && <GeneralSection u={profile.user} editing={isEditing} draft={generalDraft || profile.user} onDraftChange={setGeneralDraft} />}
+          {subTab === 'general' && <GeneralSection u={profile.user} editing={isEditing} draft={generalDraft || profile.user} onDraftChange={setGeneralDraft} errors={generalErrors} touched={touched} onTouch={markTouched} />}
           {subTab === 'job'     && <JobSection j={profile.job} editing={isEditing} draft={jobDraft || profile.job} onDraftChange={setJobDraft} approverUserIds={user?.approverUserIds || []} allUsers={allUsers} navigate={navigate} employmentTypes={employmentTypes} positions={positions} banks={banks} />}
           {subTab === 'docs'    && <DocsSection documents={profile.documents} onDelete={handleDeleteDoc} />}
         </div>
