@@ -29,7 +29,7 @@ function suggestEmployeeId(existingIds) {
   const nums = existingIds
     .map((id) => { const m = id.match(/^H(\d+)$/i); return m ? parseInt(m[1], 10) : null })
     .filter((n) => n !== null)
-  let next = Math.max(nums.length ? Math.max(...nums) + 1 : 44, 44)
+  let next = Math.max(nums.length ? Math.max(...nums) + 1 : 47, 47)
   while (set.has('H' + String(next).padStart(4, '0'))) next++
   return 'H' + String(next).padStart(4, '0')
 }
