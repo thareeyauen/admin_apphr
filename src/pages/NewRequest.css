@@ -158,3 +158,54 @@
     font-size: 0;
   }
 }
+
+/* ── Range breakdown preview ──────────────────────────────────── */
+.nr-range-preview {
+  padding: 12px 14px;
+  border: 1px solid var(--line-soft, #E5E7EB);
+  border-radius: 10px;
+  background: var(--surface-soft, #F9FAFB);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.nr-range-preview__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+.nr-range-preview__row--muted { color: var(--ink-3, #6B7280); }
+.nr-range-preview__row--total {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line, #D1D5DB);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent, #2563EB);
+}
+.nr-range-preview__row--total strong { font-size: 16px; }
+.nr-range-preview__holidays {
+  margin: 2px 0 4px;
+  padding-left: 18px;
+  list-style: disc;
+  color: var(--ink-3, #6B7280);
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nr-range-preview__note {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--ink-3, #6B7280);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.nr-range-preview__warn {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--red, #DC2626);
+  font-weight: 500;
+}

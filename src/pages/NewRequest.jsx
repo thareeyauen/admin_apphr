@@ -1,25 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MdSave, MdArrowBack, MdSearch, MdCheckCircle } from 'react-icons/md'
+import { MdSave, MdArrowBack, MdSearch, MdCheckCircle, MdInfoOutline } from 'react-icons/md'
 import Layout from '../components/Layout'
-import { getUsers, createRequest } from '../store/store'
+import { getUsers, getHolidays, createRequest } from '../store/store'
+import {
+  LEAVE_TYPES,
+  LEAVE_TYPES_BY_LABEL,
+  computeEffectiveLeaveDays,
+  summarizeRange,
+} from '../leaveTypes'
 import './Users.css'        // .acct-header, .acct-card, .btn-ghost, .btn-primary
 import './Requests.css'     // .req-edit-note (warning banner)
 import './NewRequest.css'   // .nr-* styles for this page
 
-const TYPE_OPTIONS = [
-  { value: 'Annual Leave',        label: 'ลาพักร้อน' },
-  { value: 'Sick Leave',          label: 'ลาป่วย' },
-  { value: 'Personal Leave',      label: 'ลากิจ' },
-  { value: 'Maternity Leave',     label: 'ลาคลอด' },
-  { value: 'Paternity Leave',     label: 'ลาคลอด (พนักงานชาย)' },
-  { value: 'Compensation Leave',  label: 'ลาชดเชยทำงานวันหยุด' },
-  { value: 'Ordination Leave',    label: 'ลาบวช' },
-  { value: 'Unpaid Leave',        label: 'ลาไม่รับค่าจ้าง' },
-  { value: 'Sterilization Leave', label: 'ลาทำหมัน' },
-  { value: 'Training Leave',      label: 'ลาฝึกอบรม' },
-  { value: 'Military Leave',      label: 'ลาราชการทหาร' },
-]
+// Generated from the shared leaveTypes config so admin always sees the same
+// catalog as employee + backend.
+const TYPE_OPTIONS = LEAVE_TYPES.map((t) => ({ value: t.label, label: t.labelTh }))
 
 const STATUS_OPTIONS = [
   { value: 'pending',  label: 'รอดำเนินการ' },
@@ -40,14 +36,6 @@ const todayKey = () => {
   return `${y}-${m}-${day}`
 }
 
-const inclusiveDays = (start, end) => {
-  if (!start || !end) return 0
-  const s = new Date(`${start}T00:00:00`)
-  const e = new Date(`${end}T00:00:00`)
-  if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime()) || e < s) return 0
-  return Math.floor((e - s) / 86400000) + 1
-}
-
 const formatThaiDate = (key) => {
   if (!key) return ''
   const d = new Date(`${key}T00:00:00`)
@@ -62,6 +50,7 @@ export default function NewRequest() {
   const [query, setQuery] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [holidays, setHolidays] = useState([])
 
   const today = todayKey()
   const [form, setForm] = useState({
@@ -81,7 +70,21 @@ export default function NewRequest() {
       })
       .catch(() => setUsers([]))
       .finally(() => setLoadingUsers(false))
+    getHolidays().then((list) => setHolidays(list || [])).catch(() => setHolidays([]))
   }, [])
+
+  const holidaySet = useMemo(
+    () => new Set((holidays || []).map((h) => h.holiday_date || h)),
+    [holidays]
+  )
+  const holidayLookup = useMemo(() => {
+    const m = {}
+    for (const h of holidays || []) {
+      const date = h.holiday_date || h
+      if (date) m[date] = h.name || ''
+    }
+    return m
+  }, [holidays])
 
   const filteredUsers = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -94,10 +97,21 @@ export default function NewRequest() {
   }, [users, query])
 
   const selectedOwner = users.find((u) => u.id === form.ownerId)
+  const selectedLeave = LEAVE_TYPES_BY_LABEL[form.type]
 
-  // Auto-compute days from date range.
-  const computedDays = inclusiveDays(form.startDateKey, form.endDateKey)
-  const effectiveDays = computedDays
+  // Auto-compute days from date range, excluding weekends + company holidays
+  // for working-day leave types. Calendar-day types (maternity/paternity/
+  // ordination/military/unpaid) count every day.
+  const rangeSummary = useMemo(
+    () => summarizeRange(form.startDateKey, form.endDateKey, holidaySet),
+    [form.startDateKey, form.endDateKey, holidaySet]
+  )
+  const effectiveDays = useMemo(
+    () => selectedLeave
+      ? computeEffectiveLeaveDays(selectedLeave, form.startDateKey, form.endDateKey, 'full', holidaySet)
+      : 0,
+    [selectedLeave, form.startDateKey, form.endDateKey, holidaySet]
+  )
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
 
@@ -127,6 +141,7 @@ export default function NewRequest() {
         startDateKey: form.startDateKey,
         endDateKey: form.endDateKey,
         days: effectiveDays,
+        dayTypeId: 'full',
         date: formatThaiDate(form.startDateKey),
         dateKey: form.startDateKey,
         detail: form.detail || `${formatThaiDate(form.startDateKey)} - ${formatThaiDate(form.endDateKey)} (${effectiveDays} วัน) · สร้างโดยแอดมิน`,
@@ -263,7 +278,7 @@ export default function NewRequest() {
 
           {/* Days */}
           <label className="nr-field">
-            <span className="nr-label">จำนวนวัน</span>
+            <span className="nr-label">จำนวนวันลา (คำนวณอัตโนมัติ)</span>
             <input
               type="number"
               min={0}
@@ -272,6 +287,49 @@ export default function NewRequest() {
               readOnly
             />
           </label>
+
+          {/* Range breakdown */}
+          {rangeSummary.calendar > 0 && selectedLeave && (
+            <div className="nr-field nr-field--full nr-range-preview">
+              <div className="nr-range-preview__row">
+                <span>วันในช่วงที่เลือก (ปฏิทิน)</span>
+                <strong>{rangeSummary.calendar} วัน</strong>
+              </div>
+              {!selectedLeave.countCalendarDays && rangeSummary.weekendDates.length > 0 && (
+                <div className="nr-range-preview__row nr-range-preview__row--muted">
+                  <span>หัก เสาร์-อาทิตย์</span>
+                  <strong>−{rangeSummary.weekendDates.length} วัน</strong>
+                </div>
+              )}
+              {!selectedLeave.countCalendarDays && rangeSummary.holidayDates.length > 0 && (
+                <>
+                  <div className="nr-range-preview__row nr-range-preview__row--muted">
+                    <span>หัก วันหยุดบริษัท</span>
+                    <strong>−{rangeSummary.holidayDates.length} วัน</strong>
+                  </div>
+                  <ul className="nr-range-preview__holidays">
+                    {rangeSummary.holidayDates.map((d) => (
+                      <li key={d}>{formatThaiDate(d)} — {holidayLookup[d] || 'วันหยุด'}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              <div className="nr-range-preview__row nr-range-preview__row--total">
+                <span>นับเป็นวันลาจริง</span>
+                <strong>{effectiveDays} วัน</strong>
+              </div>
+              {selectedLeave.countCalendarDays && (
+                <p className="nr-range-preview__note">
+                  <MdInfoOutline /> ลาประเภทนี้นับตามปฏิทิน (รวมเสาร์-อาทิตย์และวันหยุดบริษัท)
+                </p>
+              )}
+              {!selectedLeave.countCalendarDays && effectiveDays === 0 && (
+                <p className="nr-range-preview__warn">
+                  ⚠️ ช่วงวันที่เลือกตรงกับวันหยุดทั้งหมด — ไม่สามารถใช้สิทธิลาได้
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Detail */}
           <label className="nr-field nr-field--full">

@@ -96,6 +96,11 @@ export async function getPositions() {
   return await api('GET', '/lookups/positions');
 }
 
+export async function getHolidays(year) {
+  const qs = year ? `?year=${year}` : '';
+  return await api('GET', `/lookups/holidays${qs}`);
+}
+
 export async function getBanks() {
   return await api('GET', '/lookups/banks');
 }
