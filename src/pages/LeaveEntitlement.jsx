@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  MdEdit, MdSave, MdClose, MdSearch,
+  MdEdit, MdSave, MdClose,
   MdPerson, MdFamilyRestroom, MdAssignment, MdMoreHoriz, MdCheckCircle,
   MdEventRepeat,
 } from 'react-icons/md'
 import Layout from '../components/Layout'
+import LeaveEmployeeList from '../components/LeaveEmployeeList'
 import { getUsers, getLeaveTypes, getEntitlements, getEntitlementForUser, updateEntitlement, getRequests, snapshotAnnualCarry } from '../store/store'
 import './LeaveEntitlement.css'
 
@@ -195,38 +196,15 @@ export default function LeaveEntitlement() {
       </div>
       <div className="le-shell">
         {/* ─── LEFT: Employee list ─────────────────────────────── */}
-        <aside className="le-list-panel">
-          <div className="le-list-search">
-            <MdSearch />
-            <input
-              placeholder="ค้นหา ชื่อ / รหัส / แผนก"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
-          <div className="le-list-meta">
-            แสดง <strong>{filtered.length}</strong> / {users.length} พนักงาน
-          </div>
-          <div className="le-list-body">
-            {filtered.map((u) => (
-              <button
-                key={u.id}
-                className={`le-list-item ${selectedUserId === u.id ? 'is-active' : ''}`}
-                onClick={() => selectUser(u.id)}
-                title={editing ? 'บันทึก/ยกเลิกก่อนเปลี่ยนพนักงาน' : ''}
-              >
-                <span className="le-list-avatar">{u.initial || '?'}</span>
-                <span className="le-list-info">
-                  <span className="le-list-name">{u.nameTh}</span>
-                  <span className="le-list-role">{u.role || u.employeeLevel || '—'}</span>
-                </span>
-              </button>
-            ))}
-            {filtered.length === 0 && (
-              <p className="le-empty">ไม่พบพนักงาน</p>
-            )}
-          </div>
-        </aside>
+        <LeaveEmployeeList
+          query={query}
+          onQueryChange={setQuery}
+          users={users}
+          filtered={filtered}
+          selectedUserId={selectedUserId}
+          onSelectUser={selectUser}
+          editing={editing}
+        />
 
         {/* ─── RIGHT: Detail panel ─────────────────────────────── */}
         <section className="le-detail-panel">
@@ -301,6 +279,7 @@ export default function LeaveEntitlement() {
                                     type="number"
                                     min={0}
                                     max={max}
+                                    step={0.5}
                                     value={value}
                                     onChange={(e) =>
                                       setDraft((d) => ({ ...d, [t.id]: Number(e.target.value) }))
@@ -324,6 +303,7 @@ export default function LeaveEntitlement() {
                                       type="number"
                                       min={0}
                                       max={20}
+                                      step={0.5}
                                       value={carryDraft}
                                       onChange={(e) => {
                                         const v = Math.max(0, Math.min(20, Number(e.target.value) || 0))
@@ -348,6 +328,7 @@ export default function LeaveEntitlement() {
                                     type="number"
                                     min={0}
                                     max={max}
+                                    step={0.5}
                                     value={remaining}
                                     onChange={(e) => {
                                       const r = Math.max(0, Number(e.target.value) || 0)

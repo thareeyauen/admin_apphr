@@ -23,6 +23,13 @@ const STATUS_OPTIONS = [
   { value: 'rejected', label: 'ปฏิเสธแล้ว' },
 ]
 
+const DAY_TYPES = [
+  { id: 'full',           label: 'เต็มวัน' },
+  { id: 'half-morning',   label: 'ครึ่งวันเช้า (09.00-12.00)' },
+  { id: 'half-afternoon', label: 'ครึ่งวันบ่าย (12.00-17.00)' },
+  { id: 'period',         label: 'ระบุช่วงเวลา' },
+]
+
 const APPROVER_LEVELS_FOR = {
   'Project Level':  ['Board Level', 'Director Level'],
   'Director Level': ['Board Level'],
@@ -59,6 +66,9 @@ export default function NewRequest() {
     status: 'pending',
     startDateKey: today,
     endDateKey: today,
+    dayTypeId: 'full',
+    periodStart: '09:00',
+    periodEnd: '17:00',
     detail: '',
   })
 
@@ -108,9 +118,9 @@ export default function NewRequest() {
   )
   const effectiveDays = useMemo(
     () => selectedLeave
-      ? computeEffectiveLeaveDays(selectedLeave, form.startDateKey, form.endDateKey, 'full', holidaySet)
+      ? computeEffectiveLeaveDays(selectedLeave, form.startDateKey, form.endDateKey, form.dayTypeId, holidaySet)
       : 0,
-    [selectedLeave, form.startDateKey, form.endDateKey, holidaySet]
+    [selectedLeave, form.startDateKey, form.endDateKey, form.dayTypeId, holidaySet]
   )
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
@@ -134,6 +144,10 @@ export default function NewRequest() {
     setSaving(true)
     try {
       const approverLevels = APPROVER_LEVELS_FOR[selectedOwner?.employeeLevel] || []
+      const dayTypeCfg = DAY_TYPES.find((d) => d.id === form.dayTypeId) || DAY_TYPES[0]
+      const timeLabel = form.dayTypeId === 'period'
+        ? `${form.periodStart}-${form.periodEnd}`
+        : dayTypeCfg.label
       const payload = {
         ownerId: form.ownerId,
         type: form.type,
@@ -141,10 +155,11 @@ export default function NewRequest() {
         startDateKey: form.startDateKey,
         endDateKey: form.endDateKey,
         days: effectiveDays,
-        dayTypeId: 'full',
+        dayTypeId: form.dayTypeId,
+        time: timeLabel,
         date: formatThaiDate(form.startDateKey),
         dateKey: form.startDateKey,
-        detail: form.detail || `${formatThaiDate(form.startDateKey)} - ${formatThaiDate(form.endDateKey)} (${effectiveDays} วัน) · สร้างโดยแอดมิน`,
+        detail: form.detail || `${formatThaiDate(form.startDateKey)} - ${formatThaiDate(form.endDateKey)} (${effectiveDays} วัน) · ${timeLabel} · สร้างโดยแอดมิน`,
         approver: approverLevels.join(' / ') || 'แอดมิน',
         approverLevels,
       }
@@ -275,6 +290,38 @@ export default function NewRequest() {
               onChange={(e) => handleEndChange(e.target.value)}
             />
           </label>
+
+          {/* Day type */}
+          <label className="nr-field">
+            <span className="nr-label">ประเภทวัน</span>
+            <select value={form.dayTypeId} onChange={(e) => set('dayTypeId', e.target.value)}>
+              {DAY_TYPES.map((d) => (
+                <option key={d.id} value={d.id}>{d.label}</option>
+              ))}
+            </select>
+          </label>
+
+          {/* Period times (only when dayType = 'period') */}
+          {form.dayTypeId === 'period' && (
+            <>
+              <label className="nr-field">
+                <span className="nr-label">เวลาเริ่มต้น</span>
+                <input
+                  type="time"
+                  value={form.periodStart}
+                  onChange={(e) => set('periodStart', e.target.value)}
+                />
+              </label>
+              <label className="nr-field">
+                <span className="nr-label">เวลาสิ้นสุด</span>
+                <input
+                  type="time"
+                  value={form.periodEnd}
+                  onChange={(e) => set('periodEnd', e.target.value)}
+                />
+              </label>
+            </>
+          )}
 
           {/* Days */}
           <label className="nr-field">
