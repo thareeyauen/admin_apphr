@@ -47,7 +47,7 @@ export default function LeaveGroups({
                   : (editing ? (draft[t.id] ?? defaults[t.id]) : selectedEnt[t.id])
                 const isComputed = t.quota === null
                 const used = usedFor(t)
-                const remaining = Math.max((Number(value) || 0) - used, 0)
+                const remaining = (Number(value) || 0) - used
                 const max = MAX_BY_ID[t.id] ?? 365
                 return (
                   <div key={t.id} className={`le-tile ${isComputed ? 'is-computed' : ''}`}>
@@ -57,7 +57,7 @@ export default function LeaveGroups({
                       <div className="le-tile-input-row">
                         <input
                           type="number"
-                          min={0}
+                          min={-365}
                           max={max}
                           step={0.5}
                           value={value}
@@ -104,12 +104,12 @@ export default function LeaveGroups({
                         ใช้ <strong>{used}</strong> · คงเหลือ{' '}
                         <input
                           type="number"
-                          min={0}
+                          min={-365}
                           max={max}
                           step={0.5}
                           value={remaining}
                           onChange={(e) => {
-                            const r = Math.max(0, Number(e.target.value) || 0)
+                            const r = Number(e.target.value) || 0
                             setDraft((d) => ({ ...d, [t.id]: r + used }))
                           }}
                           className="le-tile-remaining-input"
