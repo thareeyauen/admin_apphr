@@ -412,6 +412,7 @@ export default function UserAccount() {
   const handleSubTab = (id) => { setSubTab(id); resetEdit() }
 
   const startEdit = () => {
+    if (!profile) return
     if (subTab === 'general')  setGeneralDraft(JSON.parse(JSON.stringify(profile.user)))
     if (subTab === 'job') {
       const j = JSON.parse(JSON.stringify(profile.job))
@@ -423,10 +424,11 @@ export default function UserAccount() {
   }
 
   const generalErrors = {
-    email:  getFieldError('email',  generalDraft?.email),
+    email:  generalDraft?.email ? getFieldError('email', generalDraft?.email) : '',
     nameEn: getFieldError('nameEn', generalDraft?.nameEn),
   }
-  const hasGeneralErrors = Object.values(generalErrors).some(Boolean)
+  // Only email format blocks save — nameEn warning is informational only for admin
+  const hasGeneralErrors = Boolean(generalErrors.email)
   const canSaveCurrent = !isEditing || subTab !== 'general' || !hasGeneralErrors
 
   const saveEdit = async () => {

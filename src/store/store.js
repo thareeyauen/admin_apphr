@@ -1,7 +1,8 @@
 // API client for apphr-backend.
 // Keeps the public function names used across pages; most are now async.
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000';
+const API_BASE = import.meta.env.VITE_API_BASE
+  || (window.location.hostname === 'localhost' ? 'http://localhost:4000' : 'https://apphr-backend.onrender.com');
 const SESSION_KEY = 'admin_apphr_session';
 
 export const DEFAULT_ENTITLEMENTS = { annual: 7, sick: 30, personal: 4, maternity: 120 };
