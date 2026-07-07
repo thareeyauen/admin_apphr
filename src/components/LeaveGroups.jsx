@@ -20,6 +20,8 @@ export default function LeaveGroups({
   setDraft,
   carryDraft,
   setCarryDraft,
+  baseDraft,
+  setBaseDraft,
   defaults,
   selectedEnt,
   usedFor,
@@ -41,9 +43,10 @@ export default function LeaveGroups({
                 const isAnnual = t.id === 'annual'
                 const annualBase = Number(selectedUserEnt._annualBase) || 0
                 const storedCarry = Number(selectedUserEnt._annualCarryOver) || 0
+                const liveBase = editing && isAnnual ? baseDraft : annualBase
                 const liveCarry = editing && isAnnual ? carryDraft : storedCarry
                 const value = isAnnual
-                  ? (annualBase + liveCarry)
+                  ? (liveBase + liveCarry)
                   : (editing ? (draft[t.id] ?? defaults[t.id]) : selectedEnt[t.id])
                 const isComputed = t.quota === null
                 const used = usedFor(t)
@@ -76,7 +79,26 @@ export default function LeaveGroups({
 
                     {isAnnual && (
                       <p className="le-tile-breakdown">
-                        ฐาน <strong>{annualBase}</strong> + สะสม{' '}
+                        ฐาน{' '}
+                        {editing ? (
+                          <input
+                            type="number"
+                            min={0}
+                            max={30}
+                            step={0.5}
+                            value={baseDraft}
+                            onChange={(e) => {
+                              const v = Math.max(0, Math.min(30, Number(e.target.value) || 0))
+                              setBaseDraft(v)
+                              setDraft((d) => ({ ...d, annual: v + carryDraft }))
+                            }}
+                            className="le-tile-carry-input"
+                            title="วันลาพักร้อนฐาน"
+                          />
+                        ) : (
+                          <strong>{annualBase}</strong>
+                        )}
+                        {' '}+ สะสม{' '}
                         {editing ? (
                           <input
                             type="number"
@@ -87,7 +109,7 @@ export default function LeaveGroups({
                             onChange={(e) => {
                               const v = Math.max(0, Math.min(20, Number(e.target.value) || 0))
                               setCarryDraft(v)
-                              setDraft((d) => ({ ...d, annual: annualBase + v }))
+                              setDraft((d) => ({ ...d, annual: baseDraft + v }))
                             }}
                             className="le-tile-carry-input"
                             title="ยอดสะสมจากปีก่อน (สูงสุด 20 วัน)"

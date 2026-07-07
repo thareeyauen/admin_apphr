@@ -58,12 +58,19 @@ const formatThaiLong = (d) =>
 
 const todayKey = dateKeyFor(new Date())
 
+const KNOWN_OFFICE_LOCATIONS = new Set([
+  'hand se thonglor',
+  'krac chulalongkorn university',
+])
+
 function detectCheckinKind(record) {
-  const loc = String(record?.location || record?.address || '').toLowerCase()
-  if (!loc) return 'office'
-  if (loc === 'wfh' || loc.includes('บ้าน') || loc.includes('home')) return 'wfh'
-  if (loc.includes('offsite') || loc.includes('นอก')) return 'offsite'
-  return 'office'
+  const loc = record?.location
+  if (!loc || typeof loc === 'object') return 'office'
+  const lower = loc.toLowerCase()
+  if (lower === 'wfh' || lower.includes('บ้าน') || lower.includes('home')) return 'wfh'
+  if (KNOWN_OFFICE_LOCATIONS.has(lower)) return 'office'
+  // Any other non-empty string came from the Offsite flow
+  return 'offsite'
 }
 
 function isActiveOnDate(req, dateKey) {

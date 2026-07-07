@@ -30,6 +30,7 @@ export default function LeaveEntitlement() {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState({})
   const [carryDraft, setCarryDraft] = useState(0)
+  const [baseDraft, setBaseDraft] = useState(0)
   const [justSaved, setJustSaved] = useState(false)
   const [saveError, setSaveError] = useState('')
   const [snapshotState, setSnapshotState] = useState(null) // 'confirm' | 'running' | { result }
@@ -128,21 +129,24 @@ export default function LeaveEntitlement() {
   const startEdit = () => {
     setDraft({ ...selectedEnt })
     setCarryDraft(Number(selectedUserEnt._annualCarryOver) || 0)
+    setBaseDraft(Number(selectedUserEnt._annualBase) || 0)
     setEditing(true)
   }
   const cancelEdit = () => {
     setEditing(false)
     setDraft({})
     setCarryDraft(0)
+    setBaseDraft(0)
   }
   const save = async () => {
     if (!selected) return
     setSaveError('')
-    // Annual is auto-computed as tier + carryOver on the backend; don't send the
-    // computed quota as an "override" or it will lock the value and stop
-    // recalculating with tenure or carry changes.
     const { annual: _ignoreAnnual, _annualBase, _annualCarryOver, ...rest } = draft
-    const payload = { ...rest, _annualCarryOver: Math.max(0, Math.min(20, Number(carryDraft) || 0)) }
+    const payload = {
+      ...rest,
+      annual: Math.max(0, Math.min(30, Number(baseDraft) || 0)),
+      _annualCarryOver: Math.max(0, Math.min(20, Number(carryDraft) || 0)),
+    }
     try {
       const next = await updateEntitlement(selected.id, payload)
       setEntitlementsMap(next || {})
@@ -248,6 +252,8 @@ export default function LeaveEntitlement() {
                 setDraft={setDraft}
                 carryDraft={carryDraft}
                 setCarryDraft={setCarryDraft}
+                baseDraft={baseDraft}
+                setBaseDraft={setBaseDraft}
                 defaults={defaults}
                 selectedEnt={selectedEnt}
                 usedFor={usedFor}
