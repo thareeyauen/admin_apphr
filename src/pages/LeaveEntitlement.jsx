@@ -31,6 +31,7 @@ export default function LeaveEntitlement() {
   const [draft, setDraft] = useState({})
   const [carryDraft, setCarryDraft] = useState(0)
   const [justSaved, setJustSaved] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [snapshotState, setSnapshotState] = useState(null) // 'confirm' | 'running' | { result }
 
   useEffect(() => {
@@ -136,20 +137,25 @@ export default function LeaveEntitlement() {
   }
   const save = async () => {
     if (!selected) return
+    setSaveError('')
     // Annual is auto-computed as tier + carryOver on the backend; don't send the
     // computed quota as an "override" or it will lock the value and stop
     // recalculating with tenure or carry changes.
     const { annual: _ignoreAnnual, _annualBase, _annualCarryOver, ...rest } = draft
     const payload = { ...rest, _annualCarryOver: Math.max(0, Math.min(20, Number(carryDraft) || 0)) }
-    const next = await updateEntitlement(selected.id, payload)
-    setEntitlementsMap(next || {})
-    const fresh = await getEntitlementForUser(selected.id).catch(() => null)
-    if (fresh) setSelectedUserEnt(fresh)
-    setEditing(false)
-    setDraft({})
-    setCarryDraft(0)
-    setJustSaved(true)
-    setTimeout(() => setJustSaved(false), 2000)
+    try {
+      const next = await updateEntitlement(selected.id, payload)
+      setEntitlementsMap(next || {})
+      const fresh = await getEntitlementForUser(selected.id).catch(() => null)
+      if (fresh) setSelectedUserEnt(fresh)
+      setEditing(false)
+      setDraft({})
+      setCarryDraft(0)
+      setJustSaved(true)
+      setTimeout(() => setJustSaved(false), 2000)
+    } catch (err) {
+      setSaveError(err.message || 'บันทึกไม่สำเร็จ กรุณาลองใหม่')
+    }
   }
 
   const runSnapshot = async () => {
@@ -212,6 +218,9 @@ export default function LeaveEntitlement() {
                 <div className="le-detail-actions">
                   {justSaved && (
                     <span className="le-saved-pill"><MdCheckCircle /> บันทึกแล้ว</span>
+                  )}
+                  {saveError && (
+                    <span style={{ fontSize: 12, color: 'var(--red, #c62828)' }}>{saveError}</span>
                   )}
                   {editing ? (
                     <>
