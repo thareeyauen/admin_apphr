@@ -53,7 +53,7 @@ export default function BenefitsInfo() {
     async function load() {
       try {
         const s = await getSettings()
-        if (!cancelled && s?.benefits) setDraft({ ...DEFAULT_BENEFITS, ...s.benefits })
+        if (!cancelled && s?.benefits) setDraft(s.benefits)
       } catch (err) {
         if (!cancelled) setError(err.message || 'โหลดข้อมูลไม่สำเร็จ')
       } finally {
